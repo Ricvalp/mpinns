@@ -1,0 +1,16 @@
+PYTHONPATH=. NETWORKX_AUTOMATIC_BACKENDS="networkx" JAX_DISABLE_JIT="False" python fit/fit.py \
+    --fit=fit/config/fit_propeller.py \
+    --fit.wandb.use=True \
+    --fit.dataset.load_existing_charts=True \
+    --fit.dataset.use_existing_distances_matrix=False \
+    --fit.charts.alg=fast_region_growing \
+    --fit.dataset.save_charts=True \
+    --fit.train.num_steps=40005 \
+    --fit.checkpoint.save_every=5000 \
+    --fit.train.reg_lambda=0.001 \
+    --fit.dataset.name=Propeller \
+    --fit.dataset.subset_cardinality=30000 \
+    --fit.dataset.scale=0.04 \
+    --fit.charts.min_dist=1.6 \
+    --fit.model.n_hidden=512 \
+    --fit.train.reg=reg+iso

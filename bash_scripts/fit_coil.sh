@@ -1,0 +1,13 @@
+PYTHONPATH=. NETWORKX_AUTOMATIC_BACKENDS="networkx" JAX_DISABLE_JIT="False" python fit/fit.py \
+    --fit=fit/config/fit_coil.py \
+    --fit.wandb.use=False \
+    --fit.dataset.load_existing_charts=False \
+    --fit.dataset.use_existing_distances_matrix=False \
+    --fit.charts.alg=region_growing \
+    --fit.dataset.save_charts=True \
+    --fit.train.num_steps=50000 \
+    --fit.checkpoint.save_every=10000 \
+    --fit.train.reg_lambda=0.0001 \
+    --fit.charts.n_charts=80 \
+    --fit.dataset.name=Coil \
+    --fit.dataset.subset_cardinality=1e8

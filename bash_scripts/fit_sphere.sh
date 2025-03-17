@@ -1,0 +1,14 @@
+PYTHONPATH=. NETWORKX_AUTOMATIC_BACKENDS="networkx" JAX_DISABLE_JIT="False" python fit/fit.py \
+    --fit=fit/config/fit_sphere.py \
+    --fit.wandb.use=True \
+    --fit.dataset.load_existing_charts=False \
+    --fit.dataset.use_existing_distances_matrix=False \
+    --fit.charts.alg=fast_region_growing \
+    --fit.dataset.save_charts=True \
+    --fit.train.num_steps=50000 \
+    --fit.checkpoint.save_every=5000 \
+    --fit.train.reg_lambda=0.0001 \
+    --fit.dataset.name=Sphere \
+    --fit.dataset.subset_cardinality=1e8 \
+    --fit.charts.min_dist=3.3 \
+    --fit.train.reg=reg+iso

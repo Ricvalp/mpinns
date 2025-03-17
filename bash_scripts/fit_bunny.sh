@@ -1,0 +1,14 @@
+PYTHONPATH=. NETWORKX_AUTOMATIC_BACKENDS="networkx" JAX_DISABLE_JIT="False" python fit/fit.py \
+    --fit=fit/config/fit_bunny.py \
+    --fit.wandb.use=True \
+    --fit.dataset.load_existing_charts=False \
+    --fit.dataset.use_existing_distances_matrix=True \
+    --fit.charts.alg=region_growing \
+    --fit.dataset.save_charts=True \
+    --fit.train.num_steps=15000 \
+    --fit.checkpoint.save_every=5000 \
+    --fit.train.reg_lambda=0.0001 \
+    --fit.charts.n_charts=100 \
+    --fit.dataset.name=StanfordBunny \
+    --fit.dataset.subset_cardinality=1000000 \
+    --fit.train.batch_size=64
