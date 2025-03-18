@@ -15,7 +15,6 @@ from chart_autoencoder import (
     get_umap_embeddings,
     compute_distance_matrix,
     save_charts,
-    compute_persistence_homology,
 )
 
 

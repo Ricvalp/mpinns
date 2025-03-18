@@ -59,9 +59,11 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
         inverse=True,
     )
 
-    x, y, u0, boundaries_x, boundaries_y, charts3d = get_dataset(
-        autoencoder_config.dataset.charts_path,
-        sigma=1.0,
+    x, y, boundaries_x, boundaries_y, bcs_x, bcs_y, bcs, charts3d = get_dataset(
+        charts_path=autoencoder_config.dataset.charts_path,
+        mesh_path=autoencoder_config.dataset.path,
+        scale=autoencoder_config.dataset.scale,
+        N=config.N
     )
 
     if config.plot:

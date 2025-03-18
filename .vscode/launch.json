@@ -18,6 +18,17 @@
             },
         },
         {
+            "name": "get coil dataset",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/pinns/eikonal_autodecoder/get_dataset.py",
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "NETWORKX_AUTOMATIC_BACKENDS": "networkx",
+                "JAX_DISABLE_JIT": "False",
+            },
+        },
+        {
             "name": "refine autodecoder coil",
             "type": "debugpy",
             "request": "launch",
@@ -32,12 +43,27 @@
             },
         },
         {
-            "name": "train coil",
+            "name": "train coil diffusion",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/pinns/diffusion_single_gpu_autodecoder/main.py",
             "args": [
                 "--config=pinns/diffusion_single_gpu_autodecoder/configs/coil.py",
+                "--config.autoencoder_checkpoint.step=60000",
+                "--config.mode=train"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "JAX_DISABLE_JIT": "False",
+            },
+        },
+        {
+            "name": "train coil eikonal",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/pinns/eikonal_autodecoder/main.py",
+            "args": [
+                "--config=pinns/eikonal_autodecoder/configs/coil.py",
                 "--config.autoencoder_checkpoint.step=60000",
                 "--config.mode=train"
             ],

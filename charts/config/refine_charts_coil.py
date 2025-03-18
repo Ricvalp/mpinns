@@ -28,6 +28,8 @@ def get_config():
 
     cfg.dataset = ConfigDict()
     cfg.dataset.name = "Coil"
+    cfg.dataset.path = "./datasets/coil/coil_1.2_MM.obj"
+    cfg.dataset.scale = 0.1
     cfg.dataset.charts_path = "./datasets/coil/charts"
     cfg.dataset.distance_matrix_path = "./datasets/coil/charts/distance_matrix.npy"
 

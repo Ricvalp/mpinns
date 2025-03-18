@@ -1,6 +1,8 @@
 from datasets.utils import Mesh
 from torch.utils import data
 import numpy as np
+import igl
+from jax import random
 
 
 class Coil(data.Dataset):
@@ -14,25 +16,25 @@ class Coil(data.Dataset):
     ):
 
         m = Mesh(path)
+        self.verts, self.connectivity = m.verts * scale, m.connectivity
 
         self.data = sample_points_from_mesh(m, points_per_unit_area) * scale
         if subset_cardinality is not None:
             rng = np.random.default_rng(seed)
-            if subset_cardinality > len(self.data):
-                indices = rng.choice(len(self.data), size=len(self.data), replace=False)
-            else:
+            if subset_cardinality < len(self.data):
                 indices = rng.choice(
-                    len(self.data), size=subset_cardinality, replace=False
+                    len(self.data), size=subset_cardinality - len(m.verts), replace=False
                 )
-            self.data = self.data[indices]
-
-        # , self.connectivity = m.verts * scale, m.connectivity
+                self.data = self.data[indices]
+        
+        self.data = np.concatenate([self.data, self.verts], axis=0)
 
     def __len__(self):
         return len(self.data)
 
     def __getitem__(self, idx):
         return self.data[idx]
+
 
 
 def sample_points_from_mesh(m, points_per_unit_area=2):
