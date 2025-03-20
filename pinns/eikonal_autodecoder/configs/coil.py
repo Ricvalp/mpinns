@@ -9,13 +9,17 @@ def get_config():
     config = ml_collections.ConfigDict()
 
     config.figure_path = "./figures/" + str(datetime.now().strftime("%Y%m%d-%H%M%S"))
-    config.coil_path = "./datasets/coil/coil_1.2_MM.obj"
+    
+    
+    config.mesh = ml_collections.ConfigDict()
+    config.mesh.scale = 0.1
+    config.mesh.path = "./datasets/coil/coil_1.2_MM.obj"
 
-    config.plot = False
+    config.plot = True
 
     config.mode = "train"
     config.T = 4.0
-    config.N = 100
+    config.N = 300
 
     # Autoencoder checkpoint
     config.autoencoder_checkpoint = ml_collections.ConfigDict()

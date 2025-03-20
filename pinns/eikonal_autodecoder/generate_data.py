@@ -3,7 +3,7 @@ from pathlib import Path
 import ml_collections
 from tqdm import tqdm
 from samplers import (
-    UniformICSampler,
+    UniformBCSampler,
     UniformSampler,
     UniformBoundarySampler,
 )
@@ -21,17 +21,21 @@ def generate_data(config: ml_collections.ConfigDict):
         Path(config.autoencoder_checkpoint.checkpoint_path) / "cfg.json",
     )
 
-    x, y, u0, boundaries_x, boundaries_y, charts3d = get_dataset(
-        autoencoder_config.dataset.charts_path,
-        sigma=1.0,
+    x, y, boundaries_x, boundaries_y, bcs_x, bcs_y, bcs, charts3d = get_dataset(
+        charts_path=autoencoder_config.dataset.charts_path,
+        mesh_path=config.mesh.path,
+        scale=config.mesh.scale,
+        N=config.N
     )
 
     ics_sampler = iter(
-        UniformICSampler(
-            x=x,
-            y=y,
-            u0=u0,
+        UniformBCSampler(
+            bcs_x=bcs_x,
+            bcs_y=bcs_y,
+            bcs=bcs,
+            num_charts=len(x),
             batch_size=config.training.batch_size,
+            ics_batches_path=(config.training.ics_batches_path, config.training.ics_idxs_path),
         )
     )
 

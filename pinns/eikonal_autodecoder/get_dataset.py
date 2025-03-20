@@ -1,6 +1,7 @@
 import numpy as np
 from jax import random
 import igl
+import jax.numpy as jnp
 
 from datasets.utils import Mesh
 from chart_autoencoder.get_charts import load_charts
@@ -54,7 +55,7 @@ def get_eikonal_bcs(mesh_path, scale, x, y, charts3d, N=50, seed=37):
     n_nodes = verts.shape[0]
     key = random.PRNGKey(seed)
     idx_train = random.choice(key, n_nodes, (N,), replace = False)
-    
+    idx_train = jnp.sort(idx_train)
     Y = Y_eg[idx_train]
     
     bcs_points = verts[idx_train]
@@ -64,10 +65,13 @@ def get_eikonal_bcs(mesh_path, scale, x, y, charts3d, N=50, seed=37):
     bcs = {}
     
     for key in charts3d.keys():
-        in_indices = np.where(np.isin(bcs_points, charts3d[key]).all(axis=1))
-        if len(in_indices) > 0:
-            bcs_x[key] = x[key][in_indices]
-            bcs_y[key] = y[key][in_indices]
-            bcs[key] = Y[in_indices]    
+        
+        in_indices_bcs = np.where(np.any((np.abs(bcs_points[None, :, :] - charts3d[key][:, None, :]) < 1e-8).all(axis=-1), axis=0))[0]
+        in_indices_chart = np.where(np.any((np.abs(bcs_points[None, :, :] - charts3d[key][:, None, :]) < 1e-8).all(axis=-1), axis=1))[0]
+        
+        if len(in_indices_bcs) > 0 and len(in_indices_chart) > 0:
+            bcs_x[key] = x[key][in_indices_chart]
+            bcs_y[key] = y[key][in_indices_chart]
+            bcs[key] = Y[in_indices_bcs]
 
     return bcs_x, bcs_y, bcs

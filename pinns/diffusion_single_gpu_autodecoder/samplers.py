@@ -56,10 +56,10 @@ class UniformICSampler(BaseSampler):
         self.u0 = u0
 
         if ics_batches_path is not None:
-            self.ics_batches_path, self.isc_idxs_path = ics_batches_path
+            self.ics_batches_path, self.ics_idxs_path = ics_batches_path
         else:
             self.ics_batches_path = None
-            self.isc_idxs_path = None
+            self.ics_idxs_path = None
         
         self.create_data_generation()
         
@@ -67,11 +67,11 @@ class UniformICSampler(BaseSampler):
         
         if self.ics_batches_path is not None:
             ics_batches = np.load(self.ics_batches_path)
-            isc_idxs = np.load(self.isc_idxs_path)
+            ics_idxs = np.load(self.ics_idxs_path)
             
             def data_generation():
                 idx = self.rng.integers(0, len(self.ics_batches_path), size=())
-                return ics_batches[idx], isc_idxs[idx]
+                return ics_batches[idx], ics_idxs[idx]
         
         else:
             

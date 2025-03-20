@@ -5,7 +5,7 @@ import numpy as np
 from mpl_toolkits.mplot3d import Axes3D
 
 
-def plot_domains(x, y, boundaries_x, boundaries_y, ics, name=None):
+def plot_domains(x, y, boundaries_x, boundaries_y, bcs_x, bcs_y, bcs, name=None):
     num_plots = len(x)
     cols = 4  # You can adjust the number of columns based on your preference
     rows = (num_plots + cols - 1) // cols  # Calculate required rows
@@ -20,9 +20,12 @@ def plot_domains(x, y, boundaries_x, boundaries_y, ics, name=None):
     for i in range(num_plots):
         # Calculate row and column index for the plot
         row, col = divmod(i, cols)
-
         ax[row][col].set_title(f"Chart {i}")
-        ax[row][col].scatter(x[i], y[i], s=3, c=ics[i])
+        scatter = ax[row][col].scatter(x[i], y[i], s=3, c='b')
+        scatter_bcs = ax[row][col].scatter(bcs_x[i], bcs_y[i], s=25, c=bcs[i], label="BCs")
+        # Add colorbar for boundary conditions
+        if len(np.unique(bcs[i])) > 1:  # Only add colorbar if there are multiple colors
+            fig.colorbar(scatter_bcs, ax=ax[row][col], orientation="vertical", label="BC Value")
 
         # Plot boundaries for current chart
         if i in boundaries_x:
@@ -36,11 +39,11 @@ def plot_domains(x, y, boundaries_x, boundaries_y, ics, name=None):
 
         ax[row][col].legend(loc="best")
 
-    plt.tight_layout()
+        plt.tight_layout()
 
-    if name is not None:
-        plt.savefig(name)
-    plt.show()
+        if name is not None:
+            plt.savefig(name)
+        plt.show()
 
 
 def plot_domains_with_metric(x, y, sqrt_det_g, d_params, name=None):
@@ -70,18 +73,28 @@ def plot_domains_with_metric(x, y, sqrt_det_g, d_params, name=None):
     plt.show()
 
 
-def plot_domains_3d(x, y, ics, decoder, d_params, name=None):
+def plot_domains_3d(x, y, bcs_x, bcs_y, bcs, decoder, d_params, name=None):
     fig = plt.figure(figsize=(10, 10))
     ax = fig.add_subplot(111, projection="3d")
     decoder_params = [jax.tree_map(lambda x: x[i], d_params) for i in range(len(x))]
     for i in range(len(x)):
         p = decoder.apply({"params": decoder_params[i]}, np.stack([x[i], y[i]], axis=1))
+        p_bcs = decoder.apply(
+            {"params": decoder_params[i]}, np.stack([bcs_x[i], bcs_y[i]], axis=1)
+        )
         color = plt.cm.tab10(i)
         ax.scatter(
             p[:, 0],
             p[:, 1],
             p[:, 2],
-            c=ics[i],
+        )
+        ax.scatter(
+            p_bcs[:, 0],
+            p_bcs[:, 1],
+            p_bcs[:, 2],
+            c=bcs[i],
+            s=25,
+            label=f"BCs {i}",
         )
     if name is not None:
         plt.savefig(name)

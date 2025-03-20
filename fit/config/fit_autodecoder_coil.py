@@ -33,8 +33,8 @@ def get_config():
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
     cfg.profiler = ConfigDict()
-    cfg.profiler.start_step = 300
-    cfg.profiler.end_step = 305
+    cfg.profiler.start_step = 1000000
+    cfg.profiler.end_step = 1000000
     cfg.profiler.log_dir = "./fit/profilier/coil"
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
@@ -81,12 +81,10 @@ def get_config():
     cfg.train.warmup_steps = 10000
     cfg.train.num_steps = 60001
     cfg.train.lr = 1e-4
-    cfg.train.reg_lambda = 1.0
+    cfg.train.reg_lambda = 1.
     cfg.train.weight_decay = 1e-3
     cfg.train.reg_lambda_decay = 0.9999
     cfg.train.reg = "reg+geo"
     cfg.train.noise_scale_riemannian = 0.1
-    
-
     
     return cfg

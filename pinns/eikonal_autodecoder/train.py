@@ -1,21 +1,15 @@
-import os
-import time
 from pathlib import Path
 
-import jax
-import jax.numpy as jnp
 import ml_collections
 import models
 from tqdm import tqdm
-from jax.tree_util import tree_map
 from samplers import (
-    UniformICSampler,
+    UniformBCSampler,
     UniformSampler,
     UniformBoundarySampler,
 )
 
 from chart_autoencoder.riemann import get_metric_tensor_and_sqrt_det_g_autodecoder
-from chart_autoencoder.utils import prefetch_to_device
 
 from pinns.eikonal_autodecoder.get_dataset import get_dataset
 
@@ -61,8 +55,8 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
 
     x, y, boundaries_x, boundaries_y, bcs_x, bcs_y, bcs, charts3d = get_dataset(
         charts_path=autoencoder_config.dataset.charts_path,
-        mesh_path=autoencoder_config.dataset.path,
-        scale=autoencoder_config.dataset.scale,
+        mesh_path=config.mesh.path,
+        scale=config.mesh.scale,
         N=config.N
     )
 
@@ -73,14 +67,18 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
             y,
             boundaries_x,
             boundaries_y,
-            ics=u0,
+            bcs_x=bcs_x,
+            bcs_y=bcs_y,
+            bcs=bcs,
             name=Path(config.figure_path) / "domains.png",
         )
 
         plot_domains_3d(
             x,
             y,
-            ics=u0,
+            bcs_x=bcs_x,
+            bcs_y=bcs_y,
+            bcs=bcs,
             decoder=decoder,
             d_params=d_params,
             name=Path(config.figure_path) / "domains_3d.png",
@@ -103,52 +101,14 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
             name=Path(config.figure_path) / "combined_3d_with_metric.png",
         )
 
-    # ics_sampler = prefetch_to_device(
-    #     iter(
-    #         ICUniformSampler(
-    #             x=x,
-    #             y=y,
-    #             u0=u0,
-    #         )
-    #     ),
-    #     size=8,
-    #     devices=jax.devices(),
-    # )
-
-    # res_sampler = prefetch_to_device(
-    #     iter(
-    #         UniformSampler(
-    #             x=x,
-    #             y=y,
-    #             sigma=0.1,
-    #             T=config.T,
-    #             batch_size=config.training.batch_size,
-    #         )
-    #     ),
-    #     size=8,
-    #     devices=jax.devices(),
-    # )
-
-    # boundary_sampler = prefetch_to_device(
-    #     iter(
-    #         UniformBoundarySampler(
-    #             boundaries_x=boundaries_x,
-    #             boundaries_y=boundaries_y,
-    #             T=config.T,
-    #             batch_size=config.training.batch_size,
-    #         )
-    #     ),
-    #     size=8,
-    #     devices=jax.devices(),
-    # )
-
-    ics_sampler = iter(
-        UniformICSampler(
-            x=x,
-            y=y,
-            u0=u0,
+    bcs_sampler = iter(
+        UniformBCSampler(
+            bcs_x=bcs_x,
+            bcs_y=bcs_y,
+            bcs=bcs,
+            num_charts=len(x),
             batch_size=config.training.batch_size,
-            ics_batches_path=(config.training.ics_batches_path, config.training.ics_idxs_path),
+            bcs_batches_path=(config.training.ics_batches_path, config.training.ics_idxs_path),
         )
     )
 
@@ -157,7 +117,6 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
             x=x,
             y=y,
             sigma=0.1,
-            T=config.T,
             batch_size=config.training.batch_size,
         )
     )
@@ -166,7 +125,6 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
         UniformBoundarySampler(
             boundaries_x=boundaries_x,
             boundaries_y=boundaries_y,
-            T=config.T,
             batch_size=config.training.batch_size,
             boundary_batches_paths=(config.training.boundary_batches_path, config.training.boundary_pairs_idxs_path),
         )
@@ -177,7 +135,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
         inv_metric_tensor=inv_metric_tensor,
         sqrt_det_g=sqrt_det_g,
         d_params=d_params,
-        ics=(x, y, u0),
+        bcs=(bcs_x, bcs_y, bcs),
         boundaries=(boundaries_x, boundaries_y),
     )
 
@@ -189,7 +147,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
 
         set_profiler(config.profiler, step, config.profiler.log_dir)
 
-        batch = next(res_sampler), next(boundary_sampler), next(ics_sampler)
+        batch = next(res_sampler), next(boundary_sampler), next(bcs_sampler)
         loss, model.state = model.step(model.state, batch)
 
         if step % config.wandb.log_every_steps == 0:

@@ -20,52 +20,62 @@ class BaseSampler(Dataset):
         raise NotImplementedError("Subclasses should implement this!")
 
 
-class UniformICSampler(BaseSampler):
-    def __init__(self, x, y, u0, batch_size, ics_batches_path=None):
+class UniformBCSampler(BaseSampler):
+    def __init__(self, bcs_x, bcs_y, bcs, batch_size, num_charts, bcs_batches_path=None):
         super().__init__(batch_size)
-        self.x = [np.array(x[key]) for key in sorted(x.keys())]
-        self.y = [np.array(y[key]) for key in sorted(y.keys())]
-        self.u0 = u0
+        self.bcs_x = [np.array(bcs_x[key]) for key in sorted(bcs_x.keys())]
+        self.bcs_y = [np.array(bcs_y[key]) for key in sorted(bcs_y.keys())]
+        self.bcs = [np.array(bcs[key]) for key in sorted(bcs.keys())]
+        
+        self.bcs_x = [
+            np.array(bcs_x[key]) if key in bcs_x.keys() else np.array([0.]) for key in range(num_charts)
+            ]
+        self.bcs_y = [
+            np.array(bcs_y[key]) if key in bcs_y.keys() else np.array([0.]) for key in range(num_charts)
+            ]
+        self.bcs = [
+            np.array(bcs[key]) if key in bcs.keys() else np.array([0.]) for key in range(num_charts)
+            ]
 
-        if ics_batches_path is not None:
-            self.ics_batches_path, self.isc_idxs_path = ics_batches_path
+        if bcs_batches_path is not None:
+            self.bcs_batches_path, self.bcs_idxs_path = bcs_batches_path
         else:
-            self.ics_batches_path = None
-            self.isc_idxs_path = None
+            self.bcs_batches_path = None
+            self.bcs_idxs_path = None
         
         self.create_data_generation()
         
     def create_data_generation(self):
         
-        if self.ics_batches_path is not None:
-            ics_batches = np.load(self.ics_batches_path)
-            isc_idxs = np.load(self.isc_idxs_path)
+        if self.bcs_batches_path is not None:
+            bcs_batches = np.load(self.bcs_batches_path)
+            bcs_idxs = np.load(self.bcs_idxs_path)
             
             def data_generation():
-                idx = self.rng.integers(0, len(self.ics_batches_path), size=())
-                return ics_batches[idx], isc_idxs[idx]
+                idx = self.rng.integers(0, len(self.bcs_batches_path), size=())
+                return bcs_batches[idx], bcs_idxs[idx]
         
         else:
             
             def data_generation(self):
                 idxs = [
-                    self.rng.integers(0, len(self.x[i]), size=(self.batch_size,))
-                    for i in range(len(self.x))
+                    self.rng.integers(0, len(self.bcs_x[i]), size=(self.batch_size,))
+                    for i in range(len(self.bcs_x))
                 ]
 
                 input_points = np.array(
                     [
                         np.concatenate(
-                            [np.stack([self.x[i][idx], self.y[i][idx]], axis=1)],
+                            [np.stack([self.bcs_x[i][idx], self.bcs_y[i][idx]], axis=1)],
                             axis=1,
                         )
                         for i, idx in enumerate(idxs)
                     ]
                 )
 
-                ics = np.array([self.u0[i][idx] for i, idx in enumerate(idxs)])
+                bcs = np.array([self.bcs[i][idx] for i, idx in enumerate(idxs)])
 
-                return input_points, ics
+                return input_points, bcs
         
         self.data_generation = data_generation
 
