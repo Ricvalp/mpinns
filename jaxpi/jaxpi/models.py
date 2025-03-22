@@ -107,7 +107,15 @@ def _create_optimizer(config):
         tx = optax.adam(
             learning_rate=lr, b1=config.beta1, b2=config.beta2, eps=config.eps
         )
-
+    if config.optimizer == "AdamWarmupCosineDecay":
+        lr_schedule = optax.warmup_cosine_decay_schedule(
+            init_value=0.0,
+            peak_value=config.learning_rate,
+            warmup_steps=config.warmup_steps,
+            decay_steps=config.decay_steps,
+            end_value=config.learning_rate / 100,
+        )
+        tx = optax.adam(lr_schedule)
     else:
         raise NotImplementedError(f"Optimizer {config.optimizer} not supported yet!")
 

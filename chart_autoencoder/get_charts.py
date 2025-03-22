@@ -147,7 +147,7 @@ def poisson_disk_sampling(points, min_dist):
 
 
 def fast_region_growing(
-    pts, min_dist, nearest_neighbors=5
+    pts, min_dist, nearest_neighbors=5, original_idxs=None
 ) -> Tuple[Dict[int, np.ndarray], np.ndarray]:
     """
     Fast region growing algorithm.
@@ -165,6 +165,8 @@ def fast_region_growing(
     logging.info(
         f"Creating graph with fast region growing: min_dist={min_dist}, n={nearest_neighbors}"
     )
+    if original_idxs is None:
+        original_idxs = np.arange(len(pts))
 
     G = create_graph(
         pts=pts,
@@ -206,6 +208,7 @@ def fast_region_growing(
                 partitions_idxs[node_partition_idx].append(neighbor)
 
     partitions = {i: pts[partitions_idxs[i]] for i in partitions_idxs.keys()}
+    partitions_idxs = {i: original_idxs[partitions_idxs[i]] for i in partitions_idxs.keys()}
 
     logging.info(f"Checking if the union of partitions covers all points")
 
@@ -227,11 +230,11 @@ def fast_region_growing(
             f"Partitioning completed: all {len(all_partition_points)} points are covered by the partitions"
         )
 
-    return partitions, pts[seed_points]
+    return partitions, partitions_idxs, pts[seed_points]
 
 
 def refine_chart(
-    points: jnp.ndarray, charts_to_refine_cfg: Dict[str, Any]
+    points: jnp.ndarray, points_idxs, charts_to_refine_cfg: Dict[str, Any]
 ) -> List[jnp.ndarray]:
     """
     Returns the charts from a mesh
@@ -242,19 +245,22 @@ def refine_chart(
         connectivity (jnp.ndarray): The connectivity of the mesh
     """
 
-    charts, sampled_points = fast_region_growing(
+    charts, partitions_idxs, sampled_points = fast_region_growing(
         pts=points,
         min_dist=charts_to_refine_cfg.min_dist,
         nearest_neighbors=charts_to_refine_cfg.nearest_neighbors,
+        original_idxs=points_idxs,
     )
 
-    return charts, sampled_points
+    return charts, partitions_idxs, sampled_points
 
 
 def reindex_charts(
     old_charts: List[jnp.ndarray],
+    old_idxs: Dict[int, List[int]],
     key_chart_to_refine: int,
     refined_charts: List[jnp.ndarray],
+    refined_idxs: Dict[int, List[int]],
 ) -> List[jnp.ndarray]:
     """
     Reindex the charts and boundaries after refining a chart
@@ -262,15 +268,25 @@ def reindex_charts(
 
     old_charts.pop(key_chart_to_refine)
     old_charts[key_chart_to_refine] = refined_charts[0]
-
+    
     len_old_charts = len(old_charts)
     for key in refined_charts.keys():
         if key != 0:
             old_charts[key + len_old_charts - 1] = refined_charts[key]
 
+            
+    old_idxs.pop(key_chart_to_refine)
+    old_idxs[key_chart_to_refine] = refined_idxs[0]
+
+    len_old_idxs = len(old_idxs)
+    for key in refined_idxs.keys():
+        if key != 0:
+            old_idxs[key + len_old_idxs - 1] = refined_idxs[key]
+
+
     boundaries, boundary_indices = get_boundaries(old_charts)
 
-    return old_charts, boundaries, boundary_indices
+    return old_charts, old_idxs, boundaries, boundary_indices
 
 
 def get_boundaries(charts: List[jnp.ndarray]) -> Dict[Tuple[int, int], jnp.ndarray]:
@@ -340,6 +356,8 @@ def load_charts(
     if from_autodecoder:
         with open(charts_path + "/boundary_indices.pkl", "rb") as f:
             loaded_boundary_indices = pickle.load(f)
+        with open(charts_path + "/charts_idxs.pkl", "rb") as f:
+            loaded_charts_idxs = pickle.load(f)
         try:
             with open(charts_path + "/charts2d.pkl", "rb") as f:
                 loaded_charts2d = pickle.load(f)
@@ -347,7 +365,7 @@ def load_charts(
             logging.info("No 2D charts found")
             loaded_charts2d = None
 
-        return loaded_charts, loaded_boundaries, loaded_boundary_indices, loaded_charts2d
+        return loaded_charts, loaded_charts_idxs, loaded_boundaries, loaded_boundary_indices, loaded_charts2d
 
     return loaded_charts, loaded_boundaries
 
@@ -355,6 +373,7 @@ def load_charts(
 def save_charts(
     charts_path: Union[str, Path],
     charts: List[np.ndarray],
+    charts_idxs: Dict[int, List[int]],
     boundaries: Dict[Tuple[int, int], jnp.ndarray],
     boundary_indices: Dict[Tuple[int, int], Tuple[List[int], List[int]]],
 ) -> None:
@@ -363,6 +382,7 @@ def save_charts(
     Args:
         charts_path (Union[str, Path]): The path to the folder where the charts should be stored.
         charts (List[jnp.ndarray]): The charts to be saved.
+        charts_idxs (Dict[int, List[int]]): The indices of the charts.
         boundaries (Dict[Tuple[int, int], jnp.ndarray]): The boundaries between the charts.
         boundary_indices (Dict[Tuple[int, int], Tuple[List[int], List[int]]]): The indices of the boundary points in each chart.
     Returns:
@@ -379,6 +399,9 @@ def save_charts(
 
     with open(charts_path + "/boundary_indices.pkl", "wb") as f:
         pickle.dump(boundary_indices, f)
+        
+    with open(charts_path + "/charts_idxs.pkl", "wb") as f:
+        pickle.dump(charts_idxs, f)
 
 
 def get_charts(points: jnp.ndarray, charts_config: Dict[str, Any]) -> List[jnp.ndarray]:
@@ -391,7 +414,7 @@ def get_charts(points: jnp.ndarray, charts_config: Dict[str, Any]) -> List[jnp.n
     """
 
     if charts_config.alg == "fast_region_growing":
-        charts, sampled_points = fast_region_growing(
+        charts, charts_idxs, sampled_points = fast_region_growing(
             pts=points,
             min_dist=charts_config.min_dist,
             nearest_neighbors=charts_config.nearest_neighbors,
@@ -402,4 +425,4 @@ def get_charts(points: jnp.ndarray, charts_config: Dict[str, Any]) -> List[jnp.n
 
     boundaries, boundary_indices = get_boundaries(charts)
     
-    return charts, boundaries, boundary_indices, sampled_points
+    return charts, charts_idxs, boundaries, boundary_indices, sampled_points

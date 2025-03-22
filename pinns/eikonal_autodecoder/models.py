@@ -9,17 +9,17 @@ from jaxpi.evaluator import BaseEvaluator
 from jaxpi.models import MPINN
 
 
-class Diffusion(MPINN):
+class Eikonal(MPINN):
     def __init__(
-        self, config, inv_metric_tensor, sqrt_det_g, d_params, bcs, boundaries
+        self, config, inv_metric_tensor, sqrt_det_g, d_params, bcs_charts, boundaries, num_charts
     ):
-        super().__init__(config, num_charts=len(bcs[-1]))
+        super().__init__(config, num_charts=num_charts)
 
         self.sqrt_det_g = sqrt_det_g
         self.inv_metric_tensor = inv_metric_tensor
         self.d_params = d_params
 
-        self.x, self.y, self.bc = bcs
+        self.bcs_charts = bcs_charts
         self.boundaries_x, self.boundaries_y = boundaries
 
         self.u_pred_fn = vmap(self.u_net, (None, 0, 0))
@@ -107,6 +107,7 @@ class Diffusion(MPINN):
         x, y = bcs_input_points[:, :, 0], bcs_input_points[:, :, 1]
 
         bcs_loss = self.compute_bcs_loss(params, x, y, bcs_values)
+        bcs_loss = bcs_loss[self.bcs_charts]
         bcs_loss = jnp.mean(bcs_loss)
 
         res_loss = self.compute_res_loss(params, self.d_params, res_batches)
@@ -128,7 +129,7 @@ class Diffusion(MPINN):
         return error
 
 
-class DiffusionEvaluator(BaseEvaluator):
+class EikonalEvaluator(BaseEvaluator):
     def __init__(self, config, model):
         super().__init__(config, model)
 

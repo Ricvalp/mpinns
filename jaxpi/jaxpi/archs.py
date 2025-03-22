@@ -85,8 +85,9 @@ class FourierEmbs(nn.Module):
         kernel = self.param(
             "kernel", normal(self.embed_scale), (x.shape[-1], self.embed_dim // 2)
         )
+        b = jnp.dot(x, kernel)
         y = jnp.concatenate(
-            [jnp.cos(jnp.dot(x, kernel)), jnp.sin(jnp.dot(x, kernel))], axis=-1
+            [jnp.cos(b), jnp.sin(b)], axis=-1
         )
         return y
 

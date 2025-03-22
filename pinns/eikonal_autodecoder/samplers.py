@@ -21,7 +21,7 @@ class BaseSampler(Dataset):
 
 
 class UniformBCSampler(BaseSampler):
-    def __init__(self, bcs_x, bcs_y, bcs, batch_size, num_charts, bcs_batches_path=None):
+    def __init__(self, bcs_x, bcs_y, bcs, batch_size, num_charts, bcs_batches_path=None, load_existing_batches=False):
         super().__init__(batch_size)
         self.bcs_x = [np.array(bcs_x[key]) for key in sorted(bcs_x.keys())]
         self.bcs_y = [np.array(bcs_y[key]) for key in sorted(bcs_y.keys())]
@@ -36,28 +36,26 @@ class UniformBCSampler(BaseSampler):
         self.bcs = [
             np.array(bcs[key]) if key in bcs.keys() else np.array([0.]) for key in range(num_charts)
             ]
-
-        if bcs_batches_path is not None:
-            self.bcs_batches_path, self.bcs_idxs_path = bcs_batches_path
-        else:
-            self.bcs_batches_path = None
-            self.bcs_idxs_path = None
+        
+        self.load_existing_batches = load_existing_batches
+        if load_existing_batches:
+            self.bcs_batches_path, self.bcs_values_path = bcs_batches_path
         
         self.create_data_generation()
         
     def create_data_generation(self):
         
-        if self.bcs_batches_path is not None:
-            bcs_batches = np.load(self.bcs_batches_path)
-            bcs_idxs = np.load(self.bcs_idxs_path)
+        if self.load_existing_batches:
+            self.bcs_batches = np.load(self.bcs_batches_path)
+            self.bcs_values = np.load(self.bcs_values_path)
             
             def data_generation():
                 idx = self.rng.integers(0, len(self.bcs_batches_path), size=())
-                return bcs_batches[idx], bcs_idxs[idx]
+                return self.bcs_batches[idx], self.bcs_values[idx]
         
         else:
             
-            def data_generation(self):
+            def data_generation():
                 idxs = [
                     self.rng.integers(0, len(self.bcs_x[i]), size=(self.batch_size,))
                     for i in range(len(self.bcs_x))
@@ -81,12 +79,11 @@ class UniformBCSampler(BaseSampler):
 
 
 class UniformSampler(BaseSampler):
-    def __init__(self, x, y, T, sigma, batch_size):
+    def __init__(self, x, y, sigma, batch_size):
         super().__init__(batch_size)
         self.x = [np.array(x[key]) for key in sorted(x.keys())]
         self.y = [np.array(y[key]) for key in sorted(y.keys())]
         self.sigma = sigma
-        self.T = T
 
     def data_generation(self):
         idxs = [
@@ -95,14 +92,8 @@ class UniformSampler(BaseSampler):
         ]
         batch = np.array(
             [
-                np.concatenate(
-                    [
-                        np.stack([self.x[i][idx], self.y[i][idx]], axis=1)
-                        + self.rng.normal(size=(self.batch_size, 2)) * self.sigma,
-                        self.rng.uniform(size=(self.batch_size, 1)) * self.T,
-                    ],
-                    axis=1,
-                )
+                np.stack([self.x[i][idx], self.y[i][idx]], axis=1)
+                + self.rng.normal(size=(self.batch_size, 2)) * self.sigma
                 for i, idx in enumerate(idxs)
             ]
         )
@@ -110,30 +101,27 @@ class UniformSampler(BaseSampler):
 
 
 class UniformBoundarySampler(BaseSampler):
-    def __init__(self, boundaries_x, boundaries_y, T, batch_size, boundary_batches_paths=None):
+    def __init__(self, boundaries_x, boundaries_y, batch_size, boundary_batches_paths=None, load_existing_batches=False):
         super().__init__(batch_size)
         self.boundary_x = boundaries_x
         self.boundary_y = boundaries_y
-        self.T = T
         self.num_boundaries = min([len(boundaries_x[key]) for key in boundaries_x.keys()])
         
-        if boundary_batches_paths is not None:
+        self.load_existing_batches = load_existing_batches
+        if load_existing_batches:
             self.boundary_batches_path, self.boundary_pairs_idxs_path = boundary_batches_paths
-        else:
-            self.boundary_batches_path = None
-            self.boundary_pairs_idxs_path = None
             
         self.create_data_generation()
 
     def create_data_generation(self):
         
-        if self.boundary_batches_path is not None:
-            boundary_batches = np.load(self.boundary_batches_path)
-            boundary_pairs_idxs = np.load(self.boundary_pairs_idxs_path)
+        if self.load_existing_batches:
+            self.boundary_batches = np.load(self.boundary_batches_path)
+            self.boundary_pairs_idxs = np.load(self.boundary_pairs_idxs_path)
             
             def data_generation():
-                idx = self.rng.integers(0, boundary_batches.shape[0], size=())
-                return boundary_batches[idx], boundary_pairs_idxs[idx]
+                idx = self.rng.integers(0, self.boundary_batches.shape[0], size=())
+                return self.boundary_batches[idx], self.boundary_pairs_idxs[idx]
         
         else:
             
@@ -168,34 +156,20 @@ class UniformBoundarySampler(BaseSampler):
                             size=(self.batch_size,),
                         )
 
-                        T = self.rng.uniform(size=(self.batch_size, 1)) * self.T
-
-                        batch_ab = np.concatenate(
-                            [
-                                np.stack(
+                        batch_ab = np.stack(
                                     [
                                         self.boundary_x[a][b][idx_],
                                         self.boundary_y[a][b][idx_],
                                     ],
                                     axis=1,
-                                ),
-                                T,
-                            ],
-                            axis=1,
-                        )
-                        batch_ba = np.concatenate(
-                            [
-                                np.stack(
+                                )
+                        batch_ba = np.stack(
                                     [
                                         self.boundary_x[b][a][_idx],
                                         self.boundary_y[b][a][_idx],
                                     ],
                                     axis=1,
-                                ),
-                                T,
-                            ],
-                            axis=1,
-                        )
+                                )
 
                         batch = np.stack([batch_ab, batch_ba], axis=0)
                         chart_batches.append(batch)

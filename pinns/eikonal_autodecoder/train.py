@@ -9,6 +9,8 @@ from samplers import (
     UniformBoundarySampler,
 )
 
+import jax.numpy as jnp
+
 from chart_autoencoder.riemann import get_metric_tensor_and_sqrt_det_g_autodecoder
 
 from pinns.eikonal_autodecoder.get_dataset import get_dataset
@@ -33,7 +35,7 @@ import numpy as np
 def train_and_evaluate(config: ml_collections.ConfigDict):
 
     wandb_config = config.wandb
-    wandb.init(project=wandb_config.project, name=wandb_config.name)
+    wandb.init(project=wandb_config.project, name=wandb_config.name, entity=wandb_config.entity, config=config)
 
     Path(config.figure_path).mkdir(parents=True, exist_ok=True)
     Path(config.profiler.log_dir).mkdir(parents=True, exist_ok=True)
@@ -108,7 +110,8 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
             bcs=bcs,
             num_charts=len(x),
             batch_size=config.training.batch_size,
-            bcs_batches_path=(config.training.ics_batches_path, config.training.ics_idxs_path),
+            bcs_batches_path=(config.training.bcs_batches_path, config.training.bcs_values_path),
+            load_existing_batches=config.training.load_existing_batches
         )
     )
 
@@ -127,19 +130,21 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
             boundaries_y=boundaries_y,
             batch_size=config.training.batch_size,
             boundary_batches_paths=(config.training.boundary_batches_path, config.training.boundary_pairs_idxs_path),
+            load_existing_batches=config.training.load_existing_batches
         )
     )
 
-    model = models.Diffusion(
+    model = models.Eikonal(
         config,
         inv_metric_tensor=inv_metric_tensor,
         sqrt_det_g=sqrt_det_g,
         d_params=d_params,
-        bcs=(bcs_x, bcs_y, bcs),
+        bcs_charts=jnp.array(list(bcs.keys())),
         boundaries=(boundaries_x, boundaries_y),
+        num_charts=len(x),
     )
 
-    evaluator = models.DiffusionEvaluator(config, model)
+    evaluator = models.EikonalEvaluator(config, model)
 
     print("Waiting for JIT...")
 

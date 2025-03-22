@@ -9,7 +9,7 @@ from chart_autoencoder.get_charts import load_charts
 
 def get_dataset(charts_path, mesh_path, scale, N=100):
 
-    loaded_charts3d, loaded_boundaries, loaded_boundary_indices, loaded_charts2d = load_charts(
+    loaded_charts3d, loaded_charts_idxs, loaded_boundaries, loaded_boundary_indices, loaded_charts2d = load_charts(
         charts_path, from_autodecoder=True
     )
 

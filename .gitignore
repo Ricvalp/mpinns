@@ -14,6 +14,10 @@
 *.err
 *.out
 *.log
+*slurm*
+*bcs_batches*
+*bcs_values*
+
 
 *boundary_batches*
 *boundary_pairs_idxs*

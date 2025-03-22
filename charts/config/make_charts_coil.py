@@ -15,7 +15,7 @@ def get_config():
 
     cfg.umap = ConfigDict()
     cfg.umap.umap_scale = 0.1
-    cfg.umap.umap_embeddings_path = "./datasets/coil/charts/umap_embeddings.npy"
+    cfg.umap.umap_embeddings_path = "./datasets/coil/charts-try/umap_embeddings.npy"
     cfg.umap.n_neighbors = 15
     cfg.umap.learning_rate = 1.0
     cfg.umap.min_dist = 0.8
@@ -33,8 +33,8 @@ def get_config():
     cfg.dataset.scale = 0.1
     cfg.dataset.points_per_unit_area = 5
     cfg.dataset.subset_cardinality = 300000
-    cfg.dataset.charts_path = "./datasets/coil/charts"
-    cfg.dataset.distance_matrix_path = "./datasets/coil/charts/distance_matrix.npy"
+    cfg.dataset.charts_path = "./datasets/coil/charts-try"
+    cfg.dataset.distance_matrix_path = "./datasets/coil/charts-try/distance_matrix.npy"
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # # # # # # # # # # # # #   Charts  # # # # # # # # # # # # # # # #

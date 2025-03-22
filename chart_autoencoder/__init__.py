@@ -27,5 +27,5 @@ from chart_autoencoder.get_charts import (
     reindex_charts,
 )
 from chart_autoencoder.umap_embedding import get_umap_embeddings
-from chart_autoencoder.riemann import compute_norm_g_ginv_from_params
+from chart_autoencoder.riemann import compute_norm_g_ginv_from_params, get_metric_tensor_and_sqrt_det_g, get_metric_tensor_and_sqrt_det_g_autodecoder
 from chart_autoencoder.persistence_homology_utils import compute_persistence_homology

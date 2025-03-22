@@ -32,7 +32,7 @@ def main(_):
             entity=cfg.wandb.entity,
         )
 
-    charts, boundaries, boundary_indices, charts2d = load_charts(
+    charts, charts_idxs, boundaries, boundary_indices, charts2d = load_charts(
         charts_path=cfg.dataset.charts_path,
         from_autodecoder=True,
     )

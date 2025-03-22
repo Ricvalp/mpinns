@@ -15,11 +15,10 @@ def get_config():
     config.mesh.scale = 0.1
     config.mesh.path = "./datasets/coil/coil_1.2_MM.obj"
 
-    config.plot = True
+    config.plot = False
 
     config.mode = "train"
-    config.T = 4.0
-    config.N = 300
+    config.N = 50
 
     # Autoencoder checkpoint
     config.autoencoder_checkpoint = ml_collections.ConfigDict()
@@ -32,6 +31,7 @@ def get_config():
     wandb.name = "default"
     wandb.tag = None
     wandb.log_every_steps = 100
+    wandb.entity = "ricvalp"
 
     # Arch
     config.arch = arch = ml_collections.ConfigDict()
@@ -45,7 +45,7 @@ def get_config():
     #     {"period": (jnp.pi,), "axis": (1,), "trainable": (False,)}
     # )
 
-    arch.fourier_emb = ml_collections.ConfigDict({"embed_scale": 1, "embed_dim": 256})
+    arch.fourier_emb = ml_collections.ConfigDict({"embed_scale": 1, "embed_dim": 512})
     arch.reparam = ml_collections.ConfigDict(
         {"type": "weight_fact", "mean": 0.5, "stddev": 0.1}
     )
@@ -53,7 +53,7 @@ def get_config():
     # Optim
     config.optim = optim = ml_collections.ConfigDict()
     optim.grad_accum_steps = 0
-    optim.optimizer = "Adam"
+    optim.optimizer = "AdamWarmupCosineDecay" # "Adam"
     optim.beta1 = 0.9
     optim.beta2 = 0.999
     optim.eps = 1e-8
@@ -61,6 +61,10 @@ def get_config():
     optim.lbfgs_learning_rate = 0.00001
     optim.decay_rate = 0.9
     optim.decay_steps = 2000
+    
+    # cosine decay
+    optim.warmup_steps = 500
+    optim.decay_steps = 10000
 
     # Training
     config.training = training = ml_collections.ConfigDict()
@@ -68,12 +72,13 @@ def get_config():
     training.batch_size = 1024
     training.lbfgs_max_steps = 0
     
-    training.res_batches_path = "pinns/diffusion_single_gpu_autodecoder/coil/data/res_batches.npy"
-    training.boundary_batches_path = "pinns/diffusion_single_gpu_autodecoder/coil/data/boundary_batches.npy"
-    training.boundary_pairs_idxs_path = "pinns/diffusion_single_gpu_autodecoder/coil/data/boundary_pairs_idxs.npy"
-    training.bcs_batches_path = "pinns/diffusion_single_gpu_autodecoder/coil/data/bcs_batches.npy"
-    training.bcs_idxs_path = "pinns/diffusion_single_gpu_autodecoder/coil/data/bcs_idxs.npy"
-
+    training.load_existing_batches = True
+    training.res_batches_path = "pinns/eikonal_autodecoder/coil/data/res_batches.npy"
+    training.boundary_batches_path = "pinns/eikonal_autodecoder/coil/data/boundary_batches.npy"
+    training.boundary_pairs_idxs_path = "pinns/eikonal_autodecoder/coil/data/boundary_pairs_idxs.npy"
+    training.bcs_batches_path = "pinns/eikonal_autodecoder/coil/data/bcs_batches.npy"
+    training.bcs_values_path = "pinns/eikonal_autodecoder/coil/data/bcs_values.npy"
+    
     # Weighting
     config.weighting = weighting = ml_collections.ConfigDict()
     weighting.scheme = "grad_norm"
@@ -96,12 +101,12 @@ def get_config():
     config.profiler = profiler = ml_collections.ConfigDict()
     profiler.start_step = 200
     profiler.end_step = 210
-    profiler.log_dir = "pinns/diffusion_single_gpu_autodecoder/coil/profiler"
+    profiler.log_dir = "pinns/eikonal_autodecoder/coil/profiler"
 
     # Saving
     config.saving = saving = ml_collections.ConfigDict()
     saving.checkpoint_dir = (
-        "pinns/diffusion_single_gpu_autodecoder/coil/checkpoints/"
+        "pinns/eikonal_autodecoder/coil/checkpoints/"
         + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     )
     saving.save_every_steps = 5000
@@ -110,11 +115,11 @@ def get_config():
     # Eval
     config.eval = eval = ml_collections.ConfigDict()
     eval.eval_with_last_ckpt = True
-    eval.checkpoint_dir = "pinns/diffusion_single_gpu_autodecoder/coil/checkpoints/"
+    eval.checkpoint_dir = "pinns/eikonal_autodecoder/coil/checkpoints/"
     eval.step = 9999
 
     # Input shape for initializing Flax models
-    config.input_dim = 3
+    config.input_dim = 2
 
     # Integer for PRNG random seed.
     config.seed = 42

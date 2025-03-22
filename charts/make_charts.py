@@ -37,12 +37,12 @@ def main(_):
 
     logging.info(f"Loaded {cfg.dataset.name} dataset. Got {len(train_data.data)} points")
 
-    charts, boundaries, boundary_indices, sampled_points = get_charts(
+    charts, charts_idxs, boundaries, boundary_indices, sampled_points = get_charts(
         points=train_data.data,
         charts_config=cfg.charts,
     )
     
-    save_charts(cfg.dataset.charts_path, charts, boundaries, boundary_indices)
+    save_charts(cfg.dataset.charts_path, charts, charts_idxs, boundaries, boundary_indices)
     logging.info(f"Got {len(charts)} charts. Saved charts to {cfg.dataset.charts_path}")
 
 
