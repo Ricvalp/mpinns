@@ -2,8 +2,7 @@ import jax
 import jax.numpy as jnp
 import matplotlib.pyplot as plt
 import numpy as np
-from mpl_toolkits.mplot3d import Axes3D
-from scipy.interpolate import griddata
+import open3d as o3d
 
 
 def plot_domains(x, y, boundaries_x, boundaries_y, bcs_x, bcs_y, bcs, name=None):
@@ -185,82 +184,84 @@ def plot_combined_3d_with_metric(x, y, decoder, sqrt_det_g, d_params, name=None)
     if name is not None:
         plt.savefig(name)
     plt.show()
+  
 
+def plot_charts_solution(x, y, u_preds, name):
+    
+    vmin = min(np.min(u_pred) for u_pred in u_preds)
+    vmax = max(np.max(u_pred) for u_pred in u_preds)
 
-def plot_level_curves(x, y, u_preds, config):
-    """
-    Plot level curves (contours) for the solution of the Eikonal equation.
-    """
-    for i in range(len(u_preds)):
-        # Flatten the point cloud and scalar values
-        points = np.stack([x[i], y[i]], axis=1)
-        values = u_preds[i]
+    num_charts = len(x)
+    num_rows = int(np.ceil(np.sqrt(num_charts)))
+    num_cols = int(np.ceil(num_charts / num_rows))
 
-        # Create a grid for interpolation
-        grid_x, grid_y = np.meshgrid(
-            np.linspace(points[:, 0].min(), points[:, 0].max(), 500),
-            np.linspace(points[:, 1].min(), points[:, 1].max(), 500),
-        )
-
-        # Interpolate the scalar values onto the grid
-        grid_u = griddata(points, values, (grid_x, grid_y), method="linear")
-
-        # Plot the level curves
-        plt.figure(figsize=(8, 6))
-        contour = plt.contour(grid_x, grid_y, grid_u, levels=20, cmap="jet")
-        plt.colorbar(contour, label="u value")
-        plt.title(f"Level Curves for Chart {i}")
-        plt.xlabel("x")
-        plt.ylabel("y")
-        plt.savefig(config.figure_path + f"/level_curves_chart_{i}.png")
-        plt.close()
-
-
-def plot_3d_level_curves(x, y, z, u_preds, config):
-    """
-    Plot level curves (contours) on a 3D surface for the solution of the Eikonal equation.
-    """
-    for i in range(len(u_preds)):
-        # Prepare the data for the current chart
-        points = np.stack([x[i], y[i], z[i]], axis=1)
-        values = u_preds[i]
-
-        # Create a grid for interpolation
-        grid_x, grid_y = np.meshgrid(
-            np.linspace(points[:, 0].min(), points[:, 0].max(), 100),
-            np.linspace(points[:, 1].min(), points[:, 1].max(), 100),
-        )
-
-        # Interpolate the scalar values onto the grid
-        grid_z = griddata(points[:, :2], points[:, 2], (grid_x, grid_y), method="linear")
-        grid_u = griddata(points[:, :2], values, (grid_x, grid_y), method="linear")
-
-        # Plot the 3D surface with level curves
-        fig = plt.figure(figsize=(10, 8))
-        ax = fig.add_subplot(111, projection="3d")
-        ax.set_title(f"3D Level Curves for Chart {i}")
-
-        # Plot the surface
-        surf = ax.plot_surface(
-            grid_x, grid_y, grid_z, facecolors=plt.cm.jet(grid_u / grid_u.max()), rstride=1, cstride=1, alpha=0.8
-        )
-
-        # Add level curves
-        contour = ax.contour(
-            grid_x, grid_y, grid_u, levels=20, cmap="jet", linestyles="solid", offset=grid_z.min()
-        )
-
-        # Add colorbar
-        mappable = plt.cm.ScalarMappable(cmap="jet")
-        mappable.set_array(grid_u)
-        fig.colorbar(mappable, ax=ax, shrink=0.5, aspect=10, label="u value")
-
-        # Set labels
+    fig, axes = plt.subplots(num_rows, num_cols, figsize=(18, 18))
+    axes = axes.flatten()
+    
+    for i, (ax, u_pred_chart) in enumerate(zip(axes, u_preds)):
+        ax.set_title(f"Chart {i}")
         ax.set_xlabel("x")
         ax.set_ylabel("y")
-        ax.set_zlabel("z")
+        scatter = ax.scatter(x[i], y[i], c=u_pred_chart, cmap="jet", s=2.5, vmin=vmin, vmax=vmax)
+        fig.colorbar(scatter, ax=ax, shrink=0.6)
+        
+    plt.tight_layout()
+    if name is not None:
+        plt.savefig(name)
+    plt.close()
 
-        # Save the plot
-        plt.tight_layout()
-        plt.savefig(config.figure_path + f"/3d_level_curves_chart_{i}.png")
-        plt.close()
+
+def plot_3d_level_curves(pts, sol, tol, angles=(30, 45), name=None):
+    
+    num_levels = 10
+    levels = np.linspace(np.min(sol), np.max(sol), num_levels)
+
+    colors = sol.copy()
+
+    for level in levels:
+        mask = np.abs(sol - level) < tol
+        colors[mask] = np.nan
+
+    fig = plt.figure(figsize=(10, 8))
+    ax = fig.add_subplot(111, projection='3d')
+
+    scatter = ax.scatter(pts[~np.isnan(colors), 0], pts[~np.isnan(colors), 1], pts[~np.isnan(colors), 2], c=colors[~np.isnan(colors)], cmap='jet', s=1)
+    
+    ax.scatter(pts[np.isnan(colors), 0], pts[np.isnan(colors), 1], pts[np.isnan(colors), 2], 
+            color='black', s=20)
+
+    cbar = fig.colorbar(scatter, ax=ax, shrink=0.7)
+    cbar.set_label('solution')
+
+    ax.view_init(angles[0], angles[1])
+    
+    if name is not None:
+        plt.savefig(name)
+    plt.show()
+
+
+def plot_3d_solution(pts, sol, angles, name=None):
+    fig = plt.figure(figsize=(18, 5))
+    ax = fig.add_subplot(1, 1, 1, projection="3d")
+    
+    scatter = ax.scatter(
+        pts[:, 0],
+        pts[:, 1],
+        pts[:, 2],
+        c=sol,
+        cmap="jet",
+        s=2.5,
+    )
+
+    ax.view_init(angles[0], angles[1])
+    
+    if scatter is not None:
+        cbar = fig.colorbar(scatter, ax=ax, shrink=0.7)
+        cbar.set_label('solution')
+    
+    plt.tight_layout()
+    
+    if name is not None:
+        plt.savefig(name)
+    plt.close()
+    

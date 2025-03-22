@@ -36,7 +36,7 @@ def get_config():
     # Arch
     config.arch = arch = ml_collections.ConfigDict()
     arch.arch_name = "Mlp"
-    arch.num_layers = 4
+    arch.num_layers = 2
     arch.hidden_dim = 256
     arch.out_dim = 1
     arch.activation = "tanh"
@@ -114,9 +114,12 @@ def get_config():
 
     # Eval
     config.eval = eval = ml_collections.ConfigDict()
-    eval.eval_with_last_ckpt = True
-    eval.checkpoint_dir = "pinns/eikonal_autodecoder/coil/checkpoints/"
+    eval.eval_with_last_ckpt = False
+    eval.checkpoint_dir = "pinns/eikonal_autodecoder/coil/checkpoints/2layers_0.001lr_40000decaysteps"
     eval.step = 9999
+    eval.N = 1000
+    eval.use_existing_solution = True
+    eval.solution_path = "pinns/eikonal_autodecoder/coil/eval"
 
     # Input shape for initializing Flax models
     config.input_dim = 2
