@@ -47,6 +47,7 @@ def main(_):
         cfg.dataset.charts_path, charts, charts_idxs, boundaries, boundary_indices
     )
     logging.info(f"Got {len(charts)} charts. Saved charts to {cfg.dataset.charts_path}")
+    
 
     plot_html_3d_charts(
         charts=charts,

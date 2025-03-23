@@ -382,6 +382,7 @@ def save_charts(
     charts_idxs: Dict[int, List[int]],
     boundaries: Dict[Tuple[int, int], jnp.ndarray],
     boundary_indices: Dict[Tuple[int, int], Tuple[List[int], List[int]]],
+    mesh_position_indices: Dict[int, List[int]] = None,
 ) -> None:
     """Save charts to a directory.
 
@@ -408,6 +409,10 @@ def save_charts(
 
     with open(charts_path + "/charts_idxs.pkl", "wb") as f:
         pickle.dump(charts_idxs, f)
+    
+    if mesh_position_indices is not None:
+        with open(charts_path + "/mesh_position_indices.pkl", "wb") as f:
+            pickle.dump(mesh_position_indices, f)
 
 
 def get_charts(points: jnp.ndarray, charts_config: Dict[str, Any]) -> List[jnp.ndarray]:
