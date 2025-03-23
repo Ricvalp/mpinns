@@ -146,7 +146,10 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
             y=y,
             u0=u0,
             batch_size=config.training.batch_size,
-            ics_batches_path=(config.training.ics_batches_path, config.training.ics_idxs_path),
+            ics_batches_path=(
+                config.training.ics_batches_path,
+                config.training.ics_idxs_path,
+            ),
         )
     )
 
@@ -166,7 +169,10 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
             boundaries_y=boundaries_y,
             T=config.T,
             batch_size=config.training.batch_size,
-            boundary_batches_paths=(config.training.boundary_batches_path, config.training.boundary_pairs_idxs_path),
+            boundary_batches_paths=(
+                config.training.boundary_batches_path,
+                config.training.boundary_pairs_idxs_path,
+            ),
         )
     )
 
@@ -207,9 +213,9 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
                     config.saving.checkpoint_dir,
                     keep=config.saving.num_keep_ckpts,
                 )
-    
+
     # for step in tqdm(range(step, step + config.training.lbfgs_max_steps + 1), desc="L-BFGS"):
-        
+
     #     # set_profiler(config.profiler, step, config.profiler.log_dir)
 
     #     batch = next(res_sampler), next(boundary_sampler), next(ics_sampler)

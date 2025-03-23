@@ -78,17 +78,19 @@ def evaluate(config: ml_collections.ConfigDict):
     filenames = []
     vmin = min(np.min(u_pred) for u_pred in u_preds)
     vmax = max(np.max(u_pred) for u_pred in u_preds)
-    
+
     num_rows = np.ceil(np.sqrt(len(x)))
     num_cols = np.ceil(len(x) / num_rows)
-    
+
     for i, u_pred in enumerate(zip(*u_preds)):
         fig, ax = plt.subplots(num_rows, num_cols, figsize=(15, 5 * num_rows))
         plt.suptitle(f"t = {times[i]:.2f}")
         for j, u in enumerate(u_pred):
             row = j // num_cols
             col = j % num_cols
-            ax[row, col].scatter(x[j], y[j], c=u, cmap="jet", s=2.5, vmin=vmin, vmax=vmax)
+            ax[row, col].scatter(
+                x[j], y[j], c=u, cmap="jet", s=2.5, vmin=vmin, vmax=vmax
+            )
             ax[row, col].set_xlabel("x")
             ax[row, col].set_ylabel("y")
             ax[row, col].set_title(f"Chart {j}")

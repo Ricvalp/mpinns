@@ -35,7 +35,12 @@ import numpy as np
 def train_and_evaluate(config: ml_collections.ConfigDict):
 
     wandb_config = config.wandb
-    wandb.init(project=wandb_config.project, name=wandb_config.name, entity=wandb_config.entity, config=config)
+    wandb.init(
+        project=wandb_config.project,
+        name=wandb_config.name,
+        entity=wandb_config.entity,
+        config=config,
+    )
 
     Path(config.figure_path).mkdir(parents=True, exist_ok=True)
     Path(config.profiler.log_dir).mkdir(parents=True, exist_ok=True)
@@ -59,7 +64,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
         charts_path=autoencoder_config.dataset.charts_path,
         mesh_path=config.mesh.path,
         scale=config.mesh.scale,
-        N=config.N
+        N=config.N,
     )
 
     if config.plot:
@@ -110,8 +115,11 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
             bcs=bcs,
             num_charts=len(x),
             batch_size=config.training.batch_size,
-            bcs_batches_path=(config.training.bcs_batches_path, config.training.bcs_values_path),
-            load_existing_batches=config.training.load_existing_batches
+            bcs_batches_path=(
+                config.training.bcs_batches_path,
+                config.training.bcs_values_path,
+            ),
+            load_existing_batches=config.training.load_existing_batches,
         )
     )
 
@@ -129,8 +137,11 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
             boundaries_x=boundaries_x,
             boundaries_y=boundaries_y,
             batch_size=config.training.batch_size,
-            boundary_batches_paths=(config.training.boundary_batches_path, config.training.boundary_pairs_idxs_path),
-            load_existing_batches=config.training.load_existing_batches
+            boundary_batches_paths=(
+                config.training.boundary_batches_path,
+                config.training.boundary_pairs_idxs_path,
+            ),
+            load_existing_batches=config.training.load_existing_batches,
         )
     )
 
@@ -172,9 +183,9 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
                     config.saving.checkpoint_dir,
                     keep=config.saving.num_keep_ckpts,
                 )
-    
+
     # for step in tqdm(range(step, step + config.training.lbfgs_max_steps + 1), desc="L-BFGS"):
-        
+
     #     # set_profiler(config.profiler, step, config.profiler.log_dir)
 
     #     batch = next(res_sampler), next(boundary_sampler), next(ics_sampler)

@@ -23,10 +23,12 @@ class Coil(data.Dataset):
             rng = np.random.default_rng(seed)
             if subset_cardinality < len(self.data):
                 indices = rng.choice(
-                    len(self.data), size=subset_cardinality - len(m.verts), replace=False
+                    len(self.data),
+                    size=subset_cardinality - len(m.verts),
+                    replace=False,
                 )
                 self.data = self.data[indices]
-        
+
         self.data = np.concatenate([self.data, self.verts], axis=0)
 
     def __len__(self):
@@ -34,7 +36,6 @@ class Coil(data.Dataset):
 
     def __getitem__(self, idx):
         return self.data[idx]
-
 
 
 def sample_points_from_mesh(m, points_per_unit_area=2):

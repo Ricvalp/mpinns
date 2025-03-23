@@ -11,7 +11,14 @@ from jaxpi.models import MPINN
 
 class Eikonal(MPINN):
     def __init__(
-        self, config, inv_metric_tensor, sqrt_det_g, d_params, bcs_charts, boundaries, num_charts
+        self,
+        config,
+        inv_metric_tensor,
+        sqrt_det_g,
+        d_params,
+        bcs_charts,
+        boundaries,
+        num_charts,
     ):
         super().__init__(config, num_charts=num_charts)
 
@@ -23,7 +30,6 @@ class Eikonal(MPINN):
         self.boundaries_x, self.boundaries_y = boundaries
 
         self.u_pred_fn = vmap(self.u_net, (None, 0, 0))
-
 
     def create_losses(self):
         @partial(vmap, in_axes=(0, 0, 0, 0))
@@ -40,7 +46,7 @@ class Eikonal(MPINN):
         @partial(vmap, in_axes=(None, 0, 0))
         @partial(vmap, in_axes=(None, 0, 0))
         def compute_boundary_loss(params, boundary_batches, boundary_idxs):
-            xa, ya= (
+            xa, ya = (
                 boundary_batches[0, :, 0],
                 boundary_batches[0, :, 1],
             )
@@ -53,10 +59,14 @@ class Eikonal(MPINN):
             b = boundary_idxs[1]
 
             boundary_pred_a = vmap(self.u_net, (None, 0, 0))(
-                jax.tree_map(lambda x: x[a], params), xa, ya,
+                jax.tree_map(lambda x: x[a], params),
+                xa,
+                ya,
             )
             boundary_pred_b = vmap(self.u_net, (None, 0, 0))(
-                jax.tree_map(lambda x: x[b], params), xb, yb,
+                jax.tree_map(lambda x: x[b], params),
+                xb,
+                yb,
             )
 
             return jnp.mean(0.25 * (boundary_pred_a - boundary_pred_b) ** 2)
@@ -65,39 +75,33 @@ class Eikonal(MPINN):
         self.compute_res_loss = compute_res_loss
         self.compute_boundary_loss = compute_boundary_loss
 
-
     def u_net(self, params, x, y):
         z = jnp.stack([x, y])
         u = self.state.apply_fn(params, z)
         return u[0]
 
-
     def g_inv_net(self, d_params, x, y):
         p = jnp.stack([x, y])[None, :]
         return self.inv_metric_tensor(d_params, p)[0]
-
 
     def sqrt_det_g_net(self, d_params, x, y):
         p = jnp.stack([x, y])[None, :]
         return self.sqrt_det_g(d_params, p)[0]  # check this!
 
-
     def square_norm_grad_u_net(self, params, d_params, x, y):
-        
+
         g_ij = self.g_inv_net(d_params, x, y)
         dx_u = grad(self.u_net, argnums=1)(params, x, y)
         dy_u = grad(self.u_net, argnums=2)(params, x, y)
-        
+
         norm_grad_u = (
             g_ij[0, 0] * dx_u**2 + g_ij[1, 1] * dy_u**2 + 2 * g_ij[0, 1] * dx_u * dy_u
         )
         return norm_grad_u
-    
 
     def r_net(self, params, d_params, x, y):
 
         return self.square_norm_grad_u_net(params, d_params, x, y) - 1
-
 
     def losses(self, params, batch):
 

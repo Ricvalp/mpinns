@@ -34,7 +34,7 @@ def main(argv):
 
     elif FLAGS.config.mode == "eval":
         eval.evaluate(FLAGS.config)
-        
+
     elif FLAGS.config.mode == "generate_data":
         generate_data.generate_data(FLAGS.config)
 

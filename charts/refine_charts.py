@@ -23,7 +23,7 @@ _TASK_FILE = config_flags.DEFINE_config_file(
 
 
 def main(_):
-    
+
     cfg = load_cfgs(_TASK_FILE)
     Path(cfg.figure_path).mkdir(parents=True, exist_ok=True)
 

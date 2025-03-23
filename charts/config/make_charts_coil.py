@@ -44,5 +44,5 @@ def get_config():
     cfg.charts.alg = "fast_region_growing"
     cfg.charts.min_dist = 0.98
     cfg.charts.nearest_neighbors = 10
-    
+
     return cfg

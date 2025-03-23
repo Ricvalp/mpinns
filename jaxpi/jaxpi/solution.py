@@ -1,11 +1,12 @@
 import numpy as np
 from tqdm import tqdm
 
+
 def get_final_solution(charts, charts_idxs, u_preds):
-    points = [] 
+    points = []
     solutions = []
     solution_idxs = []
-    
+
     for key in tqdm(charts_idxs.keys()):
         for i, idx in enumerate(charts_idxs[key]):
             if idx not in solution_idxs:
@@ -19,10 +20,10 @@ def get_final_solution(charts, charts_idxs, u_preds):
     final_sol = []
     for sol in solutions:
         final_sol.append(np.mean(sol, axis=0))
-    
+
     points = np.array(points)
     final_sol = np.array(final_sol)
-    
+
     return points, final_sol
 
 

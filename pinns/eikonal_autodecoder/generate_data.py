@@ -25,7 +25,7 @@ def generate_data(config: ml_collections.ConfigDict):
         charts_path=autoencoder_config.dataset.charts_path,
         mesh_path=config.mesh.path,
         scale=config.mesh.scale,
-        N=config.N
+        N=config.N,
     )
 
     bcs_sampler = iter(
@@ -35,7 +35,7 @@ def generate_data(config: ml_collections.ConfigDict):
             bcs=bcs,
             num_charts=len(x),
             batch_size=config.training.batch_size,
-            load_existing_batches=False
+            load_existing_batches=False,
         )
     )
 
@@ -53,7 +53,7 @@ def generate_data(config: ml_collections.ConfigDict):
             boundaries_x=boundaries_x,
             boundaries_y=boundaries_y,
             batch_size=config.training.batch_size,
-            load_existing_batches=False
+            load_existing_batches=False,
         )
     )
 
@@ -85,9 +85,14 @@ def generate_data(config: ml_collections.ConfigDict):
             np.save(config.training.bcs_batches_path, bcs_batches_arrey)
             np.save(config.training.bcs_values_path, bcs_values_arrey)
 
-            print("Size of res_batches in MB: ", res_batches_arrey.nbytes/1024/1024)
-            print("Size of boundary_batches in MB: ", boundary_batches_arrey.nbytes/1024/1024)
-            print("Size of boundary_pairs_idxs in MB: ", boundary_pairs_idxs_arrey.nbytes/1024/1024)
-            print("Size of bcs_batches in MB: ", bcs_batches_arrey.nbytes/1024/1024)
-            print("Size of bcs_values in MB: ", bcs_values_arrey.nbytes/1024/1024)
-
+            print("Size of res_batches in MB: ", res_batches_arrey.nbytes / 1024 / 1024)
+            print(
+                "Size of boundary_batches in MB: ",
+                boundary_batches_arrey.nbytes / 1024 / 1024,
+            )
+            print(
+                "Size of boundary_pairs_idxs in MB: ",
+                boundary_pairs_idxs_arrey.nbytes / 1024 / 1024,
+            )
+            print("Size of bcs_batches in MB: ", bcs_batches_arrey.nbytes / 1024 / 1024)
+            print("Size of bcs_values in MB: ", bcs_values_arrey.nbytes / 1024 / 1024)

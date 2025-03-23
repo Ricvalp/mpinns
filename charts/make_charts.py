@@ -18,7 +18,6 @@ from chart_autoencoder import (
 )
 
 
-
 _TASK_FILE = config_flags.DEFINE_config_file(
     "config", default="charts/config/make_charts_coil.py"
 )
@@ -35,16 +34,19 @@ def main(_):
         name=Path(cfg.figure_path) / f"{cfg.dataset.name}_points.png",
     )
 
-    logging.info(f"Loaded {cfg.dataset.name} dataset. Got {len(train_data.data)} points")
+    logging.info(
+        f"Loaded {cfg.dataset.name} dataset. Got {len(train_data.data)} points"
+    )
 
     charts, charts_idxs, boundaries, boundary_indices, sampled_points = get_charts(
         points=train_data.data,
         charts_config=cfg.charts,
     )
-    
-    save_charts(cfg.dataset.charts_path, charts, charts_idxs, boundaries, boundary_indices)
-    logging.info(f"Got {len(charts)} charts. Saved charts to {cfg.dataset.charts_path}")
 
+    save_charts(
+        cfg.dataset.charts_path, charts, charts_idxs, boundaries, boundary_indices
+    )
+    logging.info(f"Got {len(charts)} charts. Saved charts to {cfg.dataset.charts_path}")
 
     plot_html_3d_charts(
         charts=charts,

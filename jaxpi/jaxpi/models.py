@@ -23,24 +23,23 @@ class TrainState(train_state.TrainState):
     lbfgs_lr: float
     lbfgs_tx: Any = struct.field(pytree_node=False)
 
-    
     def apply_lbfgs_gradients(self, *, grads, **kwargs):
-        """Updates 
-        
-        
+        """Updates
+
+
         Args:
         grads: The gradients to apply.
 
         Returns:
             An updated instance of `self` with new params and opt_state.
-            
+
         """
 
-        grads_with_opt = grads['params']
-        params_with_opt = self.params['params']
+        grads_with_opt = grads["params"]
+        params_with_opt = self.params["params"]
 
         updates, new_opt_state = self.lbfgs_tx.update(
-        grads_with_opt, self.lbfgs_opt_state, params_with_opt
+            grads_with_opt, self.lbfgs_opt_state, params_with_opt
         )
         # params_with_opt = params_with_opt - self.lbfgs_lr * updates
         params_with_opt = jax.tree.map(
@@ -49,14 +48,13 @@ class TrainState(train_state.TrainState):
             updates,
         )
         new_params = params_with_opt
-        
-        return self.replace(
-        step=self.step + 1,
-        params={'params' : new_params},
-        lbfgs_opt_state=new_opt_state,
-        **kwargs,
-        )
 
+        return self.replace(
+            step=self.step + 1,
+            params={"params": new_params},
+            lbfgs_opt_state=new_opt_state,
+            **kwargs,
+        )
 
     def apply_weights(self, weights, **kwargs):
         """Updates `weights` using running average  in return value.
@@ -224,7 +222,7 @@ class MPINN:
             )
             state = state.apply_gradients(grads=grads)
             return loss, state
-        
+
         def lbfgs_step(state, batch, *args):
             loss, grads = value_and_grad(self.loss)(
                 state.params, state.weights, batch, *args

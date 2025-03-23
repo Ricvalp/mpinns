@@ -61,12 +61,22 @@ def get_config():
     training.max_steps = 500000
     training.batch_size = 1024
     training.lbfgs_max_steps = 0
-    
-    training.res_batches_path = "pinns/diffusion_single_gpu_autodecoder/coil/data/res_batches.npy"
-    training.boundary_batches_path = "pinns/diffusion_single_gpu_autodecoder/coil/data/boundary_batches.npy"
-    training.boundary_pairs_idxs_path = "pinns/diffusion_single_gpu_autodecoder/coil/data/boundary_pairs_idxs.npy"
-    training.ics_batches_path = "pinns/diffusion_single_gpu_autodecoder/coil/data/ics_batches.npy"
-    training.ics_idxs_path = "pinns/diffusion_single_gpu_autodecoder/coil/data/ics_idxs.npy"
+
+    training.res_batches_path = (
+        "pinns/diffusion_single_gpu_autodecoder/coil/data/res_batches.npy"
+    )
+    training.boundary_batches_path = (
+        "pinns/diffusion_single_gpu_autodecoder/coil/data/boundary_batches.npy"
+    )
+    training.boundary_pairs_idxs_path = (
+        "pinns/diffusion_single_gpu_autodecoder/coil/data/boundary_pairs_idxs.npy"
+    )
+    training.ics_batches_path = (
+        "pinns/diffusion_single_gpu_autodecoder/coil/data/ics_batches.npy"
+    )
+    training.ics_idxs_path = (
+        "pinns/diffusion_single_gpu_autodecoder/coil/data/ics_idxs.npy"
+    )
 
     # Weighting
     config.weighting = weighting = ml_collections.ConfigDict()

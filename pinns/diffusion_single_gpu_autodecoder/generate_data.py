@@ -82,9 +82,14 @@ def generate_data(config: ml_collections.ConfigDict):
             np.save(config.training.ics_batches_path, ics_batches_arrey)
             np.save(config.training.ics_idxs_path, ics_idxs_arrey)
 
-            print("Size of res_batches in MB: ", res_batches_arrey.nbytes/1024/1024)
-            print("Size of boundary_batches in MB: ", boundary_batches_arrey.nbytes/1024/1024)
-            print("Size of boundary_pairs_idxs in MB: ", boundary_pairs_idxs_arrey.nbytes/1024/1024)
-            print("Size of ics_batches in MB: ", ics_batches_arrey.nbytes/1024/1024)
-            print("Size of ics_idxs in MB: ", ics_idxs_arrey.nbytes/1024/1024)
-
+            print("Size of res_batches in MB: ", res_batches_arrey.nbytes / 1024 / 1024)
+            print(
+                "Size of boundary_batches in MB: ",
+                boundary_batches_arrey.nbytes / 1024 / 1024,
+            )
+            print(
+                "Size of boundary_pairs_idxs in MB: ",
+                boundary_pairs_idxs_arrey.nbytes / 1024 / 1024,
+            )
+            print("Size of ics_batches in MB: ", ics_batches_arrey.nbytes / 1024 / 1024)
+            print("Size of ics_idxs in MB: ", ics_idxs_arrey.nbytes / 1024 / 1024)

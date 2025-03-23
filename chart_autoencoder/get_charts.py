@@ -208,7 +208,9 @@ def fast_region_growing(
                 partitions_idxs[node_partition_idx].append(neighbor)
 
     partitions = {i: pts[partitions_idxs[i]] for i in partitions_idxs.keys()}
-    partitions_idxs = {i: original_idxs[partitions_idxs[i]] for i in partitions_idxs.keys()}
+    partitions_idxs = {
+        i: original_idxs[partitions_idxs[i]] for i in partitions_idxs.keys()
+    }
 
     logging.info(f"Checking if the union of partitions covers all points")
 
@@ -268,13 +270,12 @@ def reindex_charts(
 
     old_charts.pop(key_chart_to_refine)
     old_charts[key_chart_to_refine] = refined_charts[0]
-    
+
     len_old_charts = len(old_charts)
     for key in refined_charts.keys():
         if key != 0:
             old_charts[key + len_old_charts - 1] = refined_charts[key]
 
-            
     old_idxs.pop(key_chart_to_refine)
     old_idxs[key_chart_to_refine] = refined_idxs[0]
 
@@ -282,7 +283,6 @@ def reindex_charts(
     for key in refined_idxs.keys():
         if key != 0:
             old_idxs[key + len_old_idxs - 1] = refined_idxs[key]
-
 
     boundaries, boundary_indices = get_boundaries(old_charts)
 
@@ -365,7 +365,13 @@ def load_charts(
             logging.info("No 2D charts found")
             loaded_charts2d = None
 
-        return loaded_charts, loaded_charts_idxs, loaded_boundaries, loaded_boundary_indices, loaded_charts2d
+        return (
+            loaded_charts,
+            loaded_charts_idxs,
+            loaded_boundaries,
+            loaded_boundary_indices,
+            loaded_charts2d,
+        )
 
     return loaded_charts, loaded_boundaries
 
@@ -399,7 +405,7 @@ def save_charts(
 
     with open(charts_path + "/boundary_indices.pkl", "wb") as f:
         pickle.dump(boundary_indices, f)
-        
+
     with open(charts_path + "/charts_idxs.pkl", "wb") as f:
         pickle.dump(charts_idxs, f)
 
@@ -424,5 +430,22 @@ def get_charts(points: jnp.ndarray, charts_config: Dict[str, Any]) -> List[jnp.n
         raise NotImplementedError(f"Algorithm {charts_config.alg} not implemented")
 
     boundaries, boundary_indices = get_boundaries(charts)
-    
+
     return charts, charts_idxs, boundaries, boundary_indices, sampled_points
+
+
+def find_intersection_indices(points1, points2):
+    """
+    Find the indices of the intersection of two sets of points.
+
+    Args:
+        points1 (np.ndarray): The first set of points.
+        points2 (np.ndarray): The second set of points.
+
+    Returns:
+        np.ndarray: The indices (in the second set of points) of the intersection of the two sets of points.
+    """
+
+    intersection_indices = np.where((points1[:, None] == points2).all(axis=2))[1]
+
+    return intersection_indices

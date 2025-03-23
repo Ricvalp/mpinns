@@ -25,11 +25,11 @@ def main(_):
         charts_path=cfg.dataset.charts_path,
         from_autodecoder=True,
     )
-    
+
     compute_persistence_homology(
         charts=charts,
-        name=Path(cfg.figure_path) / f"{cfg.dataset.name}_persistence_homology.png"
-        )
+        name=Path(cfg.figure_path) / f"{cfg.dataset.name}_persistence_homology.png",
+    )
 
     logging.info(f"Got {len(charts)} charts")
 
@@ -55,6 +55,7 @@ def main(_):
         boundaries_indices=boundary_indices,
         name=Path(cfg.figure_path) / f"post_{cfg.dataset.name}_umap_charts.png",
     )
+
 
 def load_cfgs(
     _TASK_FILE,

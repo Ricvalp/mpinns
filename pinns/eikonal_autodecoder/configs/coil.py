@@ -9,8 +9,7 @@ def get_config():
     config = ml_collections.ConfigDict()
 
     config.figure_path = "./figures/" + str(datetime.now().strftime("%Y%m%d-%H%M%S"))
-    
-    
+
     config.mesh = ml_collections.ConfigDict()
     config.mesh.scale = 0.1
     config.mesh.path = "./datasets/coil/coil_1.2_MM.obj"
@@ -53,7 +52,7 @@ def get_config():
     # Optim
     config.optim = optim = ml_collections.ConfigDict()
     optim.grad_accum_steps = 0
-    optim.optimizer = "AdamWarmupCosineDecay" # "Adam"
+    optim.optimizer = "AdamWarmupCosineDecay"  # "Adam"
     optim.beta1 = 0.9
     optim.beta2 = 0.999
     optim.eps = 1e-8
@@ -61,7 +60,7 @@ def get_config():
     optim.lbfgs_learning_rate = 0.00001
     optim.decay_rate = 0.9
     optim.decay_steps = 2000
-    
+
     # cosine decay
     optim.warmup_steps = 500
     optim.decay_steps = 10000
@@ -71,14 +70,18 @@ def get_config():
     training.max_steps = 500000
     training.batch_size = 1024
     training.lbfgs_max_steps = 0
-    
+
     training.load_existing_batches = True
     training.res_batches_path = "pinns/eikonal_autodecoder/coil/data/res_batches.npy"
-    training.boundary_batches_path = "pinns/eikonal_autodecoder/coil/data/boundary_batches.npy"
-    training.boundary_pairs_idxs_path = "pinns/eikonal_autodecoder/coil/data/boundary_pairs_idxs.npy"
+    training.boundary_batches_path = (
+        "pinns/eikonal_autodecoder/coil/data/boundary_batches.npy"
+    )
+    training.boundary_pairs_idxs_path = (
+        "pinns/eikonal_autodecoder/coil/data/boundary_pairs_idxs.npy"
+    )
     training.bcs_batches_path = "pinns/eikonal_autodecoder/coil/data/bcs_batches.npy"
     training.bcs_values_path = "pinns/eikonal_autodecoder/coil/data/bcs_values.npy"
-    
+
     # Weighting
     config.weighting = weighting = ml_collections.ConfigDict()
     weighting.scheme = "grad_norm"
@@ -115,7 +118,9 @@ def get_config():
     # Eval
     config.eval = eval = ml_collections.ConfigDict()
     eval.eval_with_last_ckpt = False
-    eval.checkpoint_dir = "pinns/eikonal_autodecoder/coil/checkpoints/2layers_0.001lr_40000decaysteps"
+    eval.checkpoint_dir = (
+        "pinns/eikonal_autodecoder/coil/checkpoints/2layers_0.001lr_40000decaysteps"
+    )
     eval.step = 9999
     eval.N = 1000
     eval.use_existing_solution = True

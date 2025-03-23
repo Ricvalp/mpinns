@@ -68,14 +68,12 @@ def main(_):
     )
 
     charts_to_fit = (
-        cfg.charts_to_fit
-        if cfg.charts_to_fit is not None
-        else charts.keys()
+        cfg.charts_to_fit if cfg.charts_to_fit is not None else charts.keys()
     )
     recon_charts = {}
     latent_charts = {}
     for key in charts_to_fit:
-        
+
         trainer = TrainerAutoDecoder(
             cfg=cfg,
             chart=umap_charts[key],
@@ -88,7 +86,7 @@ def main(_):
             distances_matrix=distance_matrix[key],
             chart_key=key,
         )
-        
+
         if cfg.train.warmup_steps > 0:
             trainer.warmup(num_steps=cfg.train.warmup_steps)
         trainer.fit()

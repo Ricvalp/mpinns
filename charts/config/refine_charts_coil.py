@@ -42,7 +42,7 @@ def get_config():
     cfg.charts_to_refine.alg = "fast_region_growing"
     cfg.charts_to_refine.min_dist = 1.1
     cfg.charts_to_refine.nearest_neighbors = 10
-    
+
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
     # # # # # # # # # # # # # # Charts  # # # # # # # # # # # # # # # #
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

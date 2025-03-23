@@ -21,11 +21,15 @@ def plot_domains(x, y, boundaries_x, boundaries_y, bcs_x, bcs_y, bcs, name=None)
         # Calculate row and column index for the plot
         row, col = divmod(i, cols)
         ax[row][col].set_title(f"Chart {i}")
-        scatter = ax[row][col].scatter(x[i], y[i], s=3, c='b')
-        scatter_bcs = ax[row][col].scatter(bcs_x[i], bcs_y[i], s=50, c=bcs[i], label="BCs")
+        scatter = ax[row][col].scatter(x[i], y[i], s=3, c="b")
+        scatter_bcs = ax[row][col].scatter(
+            bcs_x[i], bcs_y[i], s=50, c=bcs[i], label="BCs"
+        )
         # Add colorbar for boundary conditions
         if len(np.unique(bcs[i])) > 1:  # Only add colorbar if there are multiple colors
-            fig.colorbar(scatter_bcs, ax=ax[row][col], orientation="vertical", label="BC Value")
+            fig.colorbar(
+                scatter_bcs, ax=ax[row][col], orientation="vertical", label="BC Value"
+            )
 
         # Plot boundaries for current chart
         if i in boundaries_x:
@@ -77,29 +81,22 @@ def plot_domains_3d(x, y, bcs_x, bcs_y, bcs, decoder, d_params, name=None):
     fig = plt.figure(figsize=(10, 8))
     ax = fig.add_subplot(111, projection="3d")
     ax.set_title("Combined 3D Plot")
-    
+
     decoder_params = [jax.tree_map(lambda x: x[i], d_params) for i in range(len(x))]
-    
+
     # Create a single colorbar for all BC points
     all_bc_values = np.concatenate([bcs[i] for i in range(len(bcs))])
     vmin, vmax = np.min(all_bc_values), np.max(all_bc_values)
-    
+
     for i in range(len(x)):
         p = decoder.apply({"params": decoder_params[i]}, np.stack([x[i], y[i]], axis=1))
         p_bcs = decoder.apply(
             {"params": decoder_params[i]}, np.stack([bcs_x[i], bcs_y[i]], axis=1)
         )
-        
+
         # Plot the domain points
-        ax.scatter(
-            p[:, 0],
-            p[:, 1],
-            p[:, 2],
-            s=3,
-            alpha=0.5,
-            label=f"Chart {i}"
-        )
-        
+        ax.scatter(p[:, 0], p[:, 1], p[:, 2], s=3, alpha=0.5, label=f"Chart {i}")
+
         # Plot the boundary conditions with colors
         scatter_bcs = ax.scatter(
             p_bcs[:, 0],
@@ -109,18 +106,18 @@ def plot_domains_3d(x, y, bcs_x, bcs_y, bcs, decoder, d_params, name=None):
             s=50,
             vmin=vmin,
             vmax=vmax,
-            label=f"BCs {i}"
+            label=f"BCs {i}",
         )
-    
+
     # Add a single colorbar for all boundary conditions
     cbar = fig.colorbar(scatter_bcs, ax=ax, orientation="vertical", label="BC Value")
-    
+
     # Set consistent axes limits
     ax.set_box_aspect([1, 1, 1])  # Equal aspect ratio
     ax.legend(loc="best")
-    
+
     plt.tight_layout()
-    
+
     if name is not None:
         plt.savefig(name)
     plt.show()
@@ -184,10 +181,10 @@ def plot_combined_3d_with_metric(x, y, decoder, sqrt_det_g, d_params, name=None)
     if name is not None:
         plt.savefig(name)
     plt.show()
-  
+
 
 def plot_charts_solution(x, y, u_preds, name):
-    
+
     vmin = min(np.min(u_pred) for u_pred in u_preds)
     vmax = max(np.max(u_pred) for u_pred in u_preds)
 
@@ -197,14 +194,16 @@ def plot_charts_solution(x, y, u_preds, name):
 
     fig, axes = plt.subplots(num_rows, num_cols, figsize=(18, 18))
     axes = axes.flatten()
-    
+
     for i, (ax, u_pred_chart) in enumerate(zip(axes, u_preds)):
         ax.set_title(f"Chart {i}")
         ax.set_xlabel("x")
         ax.set_ylabel("y")
-        scatter = ax.scatter(x[i], y[i], c=u_pred_chart, cmap="jet", s=2.5, vmin=vmin, vmax=vmax)
+        scatter = ax.scatter(
+            x[i], y[i], c=u_pred_chart, cmap="jet", s=2.5, vmin=vmin, vmax=vmax
+        )
         fig.colorbar(scatter, ax=ax, shrink=0.6)
-        
+
     plt.tight_layout()
     if name is not None:
         plt.savefig(name)
@@ -212,7 +211,7 @@ def plot_charts_solution(x, y, u_preds, name):
 
 
 def plot_3d_level_curves(pts, sol, tol, angles=(30, 45), name=None):
-    
+
     num_levels = 10
     levels = np.linspace(np.min(sol), np.max(sol), num_levels)
 
@@ -223,18 +222,30 @@ def plot_3d_level_curves(pts, sol, tol, angles=(30, 45), name=None):
         colors[mask] = np.nan
 
     fig = plt.figure(figsize=(10, 8))
-    ax = fig.add_subplot(111, projection='3d')
+    ax = fig.add_subplot(111, projection="3d")
 
-    scatter = ax.scatter(pts[~np.isnan(colors), 0], pts[~np.isnan(colors), 1], pts[~np.isnan(colors), 2], c=colors[~np.isnan(colors)], cmap='jet', s=1)
-    
-    ax.scatter(pts[np.isnan(colors), 0], pts[np.isnan(colors), 1], pts[np.isnan(colors), 2], 
-            color='black', s=20)
+    scatter = ax.scatter(
+        pts[~np.isnan(colors), 0],
+        pts[~np.isnan(colors), 1],
+        pts[~np.isnan(colors), 2],
+        c=colors[~np.isnan(colors)],
+        cmap="jet",
+        s=1,
+    )
+
+    ax.scatter(
+        pts[np.isnan(colors), 0],
+        pts[np.isnan(colors), 1],
+        pts[np.isnan(colors), 2],
+        color="black",
+        s=20,
+    )
 
     cbar = fig.colorbar(scatter, ax=ax, shrink=0.7)
-    cbar.set_label('solution')
+    cbar.set_label("solution")
 
     ax.view_init(angles[0], angles[1])
-    
+
     if name is not None:
         plt.savefig(name)
     plt.show()
@@ -243,7 +254,7 @@ def plot_3d_level_curves(pts, sol, tol, angles=(30, 45), name=None):
 def plot_3d_solution(pts, sol, angles, name=None):
     fig = plt.figure(figsize=(18, 5))
     ax = fig.add_subplot(1, 1, 1, projection="3d")
-    
+
     scatter = ax.scatter(
         pts[:, 0],
         pts[:, 1],
@@ -254,14 +265,31 @@ def plot_3d_solution(pts, sol, angles, name=None):
     )
 
     ax.view_init(angles[0], angles[1])
-    
+
     if scatter is not None:
         cbar = fig.colorbar(scatter, ax=ax, shrink=0.7)
-        cbar.set_label('solution')
-    
+        cbar.set_label("solution")
+
     plt.tight_layout()
-    
+
     if name is not None:
         plt.savefig(name)
     plt.close()
-    
+
+
+def plot_correlation(mesh_sol, gt_sol, name=None):
+
+    fig, ax = plt.subplots(figsize=(8, 6))
+    ax.scatter(mesh_sol, gt_sol, s=5)
+    ax.set_xlabel("Mesh Solution")
+    ax.set_ylabel("Ground Truth Solution")
+    ax.set_title("Correlation between Mesh and GT Solutions")
+
+    # Add a diagonal line for reference
+    min_val = min(np.min(mesh_sol), np.min(gt_sol))
+    max_val = max(np.max(mesh_sol), np.max(gt_sol))
+    ax.plot([min_val, max_val], [min_val, max_val], "r--", lw=2)
+
+    if name is not None:
+        plt.savefig(name)
+    plt.show()

@@ -60,21 +60,21 @@ class UniformICSampler(BaseSampler):
         else:
             self.ics_batches_path = None
             self.ics_idxs_path = None
-        
+
         self.create_data_generation()
-        
+
     def create_data_generation(self):
-        
+
         if self.ics_batches_path is not None:
             ics_batches = np.load(self.ics_batches_path)
             ics_idxs = np.load(self.ics_idxs_path)
-            
+
             def data_generation():
                 idx = self.rng.integers(0, len(self.ics_batches_path), size=())
                 return ics_batches[idx], ics_idxs[idx]
-        
+
         else:
-            
+
             def data_generation(self):
                 idxs = [
                     self.rng.integers(0, len(self.x[i]), size=(self.batch_size,))
@@ -94,7 +94,7 @@ class UniformICSampler(BaseSampler):
                 ics = np.array([self.u0[i][idx] for i, idx in enumerate(idxs)])
 
                 return input_points, ics
-        
+
         self.data_generation = data_generation
 
 
@@ -125,8 +125,6 @@ class UniformSampler(BaseSampler):
             ]
         )
         return batch
-
-
 
 
 # class UniformBoundarySampler(BaseSampler):
@@ -204,35 +202,40 @@ class UniformSampler(BaseSampler):
 #         return np.array(batches), np.array(pairs_idxs)
 
 
-
 class UniformBoundarySampler(BaseSampler):
-    def __init__(self, boundaries_x, boundaries_y, T, batch_size, boundary_batches_paths=None):
+    def __init__(
+        self, boundaries_x, boundaries_y, T, batch_size, boundary_batches_paths=None
+    ):
         super().__init__(batch_size)
         self.boundary_x = boundaries_x
         self.boundary_y = boundaries_y
         self.T = T
-        self.num_boundaries = min([len(boundaries_x[key]) for key in boundaries_x.keys()])
-        
+        self.num_boundaries = min(
+            [len(boundaries_x[key]) for key in boundaries_x.keys()]
+        )
+
         if boundary_batches_paths is not None:
-            self.boundary_batches_path, self.boundary_pairs_idxs_path = boundary_batches_paths
+            self.boundary_batches_path, self.boundary_pairs_idxs_path = (
+                boundary_batches_paths
+            )
         else:
             self.boundary_batches_path = None
             self.boundary_pairs_idxs_path = None
-            
+
         self.create_data_generation()
 
     def create_data_generation(self):
-        
+
         if self.boundary_batches_path is not None:
             boundary_batches = np.load(self.boundary_batches_path)
             boundary_pairs_idxs = np.load(self.boundary_pairs_idxs_path)
-            
+
             def data_generation():
                 idx = self.rng.integers(0, boundary_batches.shape[0], size=())
                 return boundary_batches[idx], boundary_pairs_idxs[idx]
-        
+
         else:
-            
+
             def data_generation():
                 batches = []
                 pairs_idxs = []
@@ -242,7 +245,9 @@ class UniformBoundarySampler(BaseSampler):
                         size=(self.num_boundaries,),
                         replace=False,
                     )
-                    cur_pairs = [(outer_key, inner_key) for inner_key in inner_keys.tolist()]
+                    cur_pairs = [
+                        (outer_key, inner_key) for inner_key in inner_keys.tolist()
+                    ]
                     pairs_idxs.append(cur_pairs)
 
                     chart_batches = []
