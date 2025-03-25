@@ -47,12 +47,12 @@
             },
         },
         {
-            "name": "train coil eikonal",
+            "name": "train bunny eikonal",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/pinns/eikonal_autodecoder/main.py",
             "args": [
-                "--config=pinns/eikonal_autodecoder/configs/coil.py",
+                "--config=pinns/eikonal_autodecoder/configs/bunny.py",
                 "--config.autoencoder_checkpoint.step=60000",
                 "--config.mode=train"
             ],
@@ -62,14 +62,14 @@
             },
         },
         {
-            "name": "eval coil eikonal",
+            "name": "eval bunny eikonal",
             "type": "debugpy",
             "request": "launch",
             "program": "${workspaceFolder}/pinns/eikonal_autodecoder/main.py",
             "args": [
-                "--config=pinns/eikonal_autodecoder/configs/coil.py",
+                "--config=pinns/eikonal_autodecoder/configs/bunny.py",
                 "--config.autoencoder_checkpoint.step=60000",
-                "--config.eval.step=74999",
+                "--config.eval.step=89999",
                 "--config.mode=eval"
             ],
             "env": {

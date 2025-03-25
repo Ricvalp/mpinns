@@ -155,8 +155,25 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
         num_charts=len(x),
     )
 
-    evaluator = models.EikonalEvaluator(config, model)
-
+    # evaluator = models.EikonalEvaluator(config, model)
+    
+    
+    # Prepare evaluation points
+    _, _, _, _, eval_x, eval_y, u_eval, _ = get_dataset(
+        charts_path=autoencoder_config.dataset.charts_path,
+        mesh_path=config.mesh.path,
+        scale=config.mesh.scale,
+        N=config.logging.num_eval_points,
+    )
+    max_eval_points = max([len(eval_x[key]) for key in eval_x.keys()])
+    eval_idxs = [
+        np.random.randint(0, len(eval_x[key]), max_eval_points)
+        for key in eval_x.keys()
+    ]
+    eval_x = jnp.stack([eval_x[key][idx] for key, idx in zip(eval_x.keys(), eval_idxs)])
+    eval_y = jnp.stack([eval_y[key][idx] for key, idx in zip(eval_y.keys(), eval_idxs)])
+    u_eval = jnp.stack([u_eval[key][idx] for key, idx in zip(u_eval.keys(), eval_idxs)])
+    
     print("Waiting for JIT...")
 
     for step in tqdm(range(1, config.training.max_steps + 1), desc="Training"):
@@ -168,11 +185,23 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
 
         if step % config.wandb.log_every_steps == 0:
             wandb.log({"loss": loss}, step)
+        
+        if step % config.logging.eval_every_steps == 0:
+            losses, eval_loss = model.eval(model.state, batch, eval_x, eval_y, u_eval)
+            wandb.log({
+                "eval_loss": eval_loss, 
+                "bcs_loss": losses["bcs"],
+                "res_loss": losses["res"],
+                "boundary_loss": losses["bc"],
+                "bcs_weight": model.state.weights['bcs'],
+                "res_weight": model.state.weights['res'],
+                "boundary_weight": model.state.weights['bc']
+                }, step)
 
         if config.weighting.scheme in ["grad_norm", "ntk"]:
             if step % config.weighting.update_every_steps == 0:
                 model.state = model.update_weights(model.state, batch)
-
+                
         # Saving
         if config.saving.save_every_steps is not None:
             if (step + 1) % config.saving.save_every_steps == 0 or (
@@ -183,15 +212,5 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
                     config.saving.checkpoint_dir,
                     keep=config.saving.num_keep_ckpts,
                 )
-
-    # for step in tqdm(range(step, step + config.training.lbfgs_max_steps + 1), desc="L-BFGS"):
-
-    #     # set_profiler(config.profiler, step, config.profiler.log_dir)
-
-    #     batch = next(res_sampler), next(boundary_sampler), next(ics_sampler)
-    #     loss, model.state = model.lbfgs_step(model.state, batch)
-
-    #     if step % config.wandb.log_every_steps == 0:
-    #         wandb.log({"loss": loss}, step)
 
     return model

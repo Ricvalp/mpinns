@@ -27,7 +27,7 @@ def main(_):
     cfg = load_cfgs(_TASK_FILE)
     Path(cfg.figure_path).mkdir(parents=True, exist_ok=True)
 
-    charts, _, _, _ = load_charts(
+    charts, charts_idxs, _, _, _ = load_charts(
         charts_path=cfg.dataset.charts_path,
         from_autodecoder=True,
     )
@@ -42,8 +42,9 @@ def main(_):
     )
 
     chart_to_refine = cfg.charts_to_refine.chart_to_refine
-    refined_chart, refined_sampled_points = refine_chart(
+    refined_chart, refined_idxs, refined_sampled_points = refine_chart(
         points=charts[chart_to_refine],
+        points_idxs=charts_idxs[chart_to_refine],
         charts_to_refine_cfg=cfg.charts_to_refine,
     )
 
@@ -57,10 +58,12 @@ def main(_):
         name=Path(cfg.figure_path) / f"{cfg.dataset.name}_refined_charts.png",
     )
 
-    reindexed_charts, reindexed_boundaries, reindexed_boundary_indices = reindex_charts(
+    reindexed_charts, reindexed_idxs, reindexed_boundaries, reindexed_boundary_indices = reindex_charts(
         old_charts=charts,
+        old_idxs=charts_idxs,
         key_chart_to_refine=chart_to_refine,
         refined_charts=refined_chart,
+        refined_idxs=refined_idxs,
     )
 
     plot_html_3d_charts(
@@ -96,6 +99,7 @@ def main(_):
         save_charts(
             cfg.dataset.charts_path,
             reindexed_charts,
+            reindexed_idxs,
             reindexed_boundaries,
             reindexed_boundary_indices,
         )

@@ -126,12 +126,12 @@ class Eikonal(MPINN):
 
         return loss_dict
 
-    @partial(jit, static_argnums=(0,))
-    def compute_l2_error(self, params, u_test):
-        u_pred = self.u_pred_fn(params, self.x, self.y)
-        error = jnp.linalg.norm(u_pred - u_test) / jnp.linalg.norm(u_test)
+    def compute_l2_error(self, params, x, y, u_test):
+        error = self.compute_bcs_loss(params, x, y, u_test)
+        error = error[self.bcs_charts]
+        error = jnp.mean(error)
         return error
-
+    
 
 class EikonalEvaluator(BaseEvaluator):
     def __init__(self, config, model):

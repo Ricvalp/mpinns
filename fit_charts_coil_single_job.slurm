@@ -13,6 +13,6 @@ conda activate manifold-pinns
 PYTHONPATH=. \
 python fit/fit_autodecoder.py \
 --config=fit/config/fit_autodecoder_coil.py \
---config.charts_to_fit='(55)' \
+--config.charts_to_fit='(16)' \
 --config.train.reg_lambda=2. \
 --config.train.warmup_steps=1000 

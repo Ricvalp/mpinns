@@ -18,6 +18,8 @@
 *bcs_batches*
 *bcs_values*
 
+*.pkl
+*.npy
 
 *boundary_batches*
 *boundary_pairs_idxs*
