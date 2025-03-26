@@ -233,9 +233,9 @@ class MPINN:
             state = state.apply_lbfgs_gradients(grads=grads)
             return loss, state
         
-        def eval(state, batch, eval_x, eval_y, u_eval):
+        def eval(state, batch, eval_x, eval_y, u_eval, bcs_charts):
             losses = self.losses(state.params, batch)
-            eval_loss = self.compute_l2_error(state.params, eval_x, eval_y, u_eval)
+            eval_loss = self.compute_l2_error(state.params, eval_x, eval_y, u_eval, bcs_charts)
             
             return losses, eval_loss
             

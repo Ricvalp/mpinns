@@ -95,7 +95,7 @@ def evaluate(config: ml_collections.ConfigDict):
                 model.u_pred_fn(jax.tree.map(lambda x: x[i], params), x[i], y[i])
             )
         
-        pts, sol =get_final_solution(
+        pts, sol = get_final_solution(
             charts=charts,
             charts_idxs=charts_idxs,
             u_preds=u_preds,

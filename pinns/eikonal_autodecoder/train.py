@@ -23,12 +23,10 @@ from pinns.eikonal_autodecoder.plot import (
 )
 
 import wandb
-from jaxpi.logging import Logger
 from jaxpi.utils import save_checkpoint, load_config
 
 from utils import set_profiler
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 
@@ -44,7 +42,6 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
 
     Path(config.figure_path).mkdir(parents=True, exist_ok=True)
     Path(config.profiler.log_dir).mkdir(parents=True, exist_ok=True)
-    logger = Logger()
 
     autoencoder_config = load_config(
         Path(config.autoencoder_checkpoint.checkpoint_path) / "cfg.json",
@@ -66,6 +63,8 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
         scale=config.mesh.scale,
         N=config.N,
     )
+    
+    num_charts = len(x)
 
     if config.plot:
 
@@ -152,11 +151,10 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
         d_params=d_params,
         bcs_charts=jnp.array(list(bcs.keys())),
         boundaries=(boundaries_x, boundaries_y),
-        num_charts=len(x),
+        num_charts=num_charts,
     )
 
     # evaluator = models.EikonalEvaluator(config, model)
-    
     
     # Prepare evaluation points
     _, _, _, _, eval_x, eval_y, u_eval, _ = get_dataset(
@@ -166,13 +164,25 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
         N=config.logging.num_eval_points,
     )
     max_eval_points = max([len(eval_x[key]) for key in eval_x.keys()])
-    eval_idxs = [
-        np.random.randint(0, len(eval_x[key]), max_eval_points)
-        for key in eval_x.keys()
-    ]
-    eval_x = jnp.stack([eval_x[key][idx] for key, idx in zip(eval_x.keys(), eval_idxs)])
-    eval_y = jnp.stack([eval_y[key][idx] for key, idx in zip(eval_y.keys(), eval_idxs)])
-    u_eval = jnp.stack([u_eval[key][idx] for key, idx in zip(u_eval.keys(), eval_idxs)])
+    eval_idxs = {
+        key: np.random.randint(0, len(eval_x[key]), max_eval_points) for key in eval_x.keys()
+    }
+
+    bcs_charts = jnp.array(list(u_eval.keys()))
+
+    eval_x = jnp.array([
+        jnp.array(eval_x[key][eval_idxs[key]]) if key in eval_x.keys() else jnp.zeros((max_eval_points,))
+        for key in range(num_charts)
+    ])
+    eval_y = jnp.array([
+        jnp.array(eval_y[key][eval_idxs[key]]) if key in eval_y.keys() else jnp.zeros((max_eval_points,))
+        for key in range(num_charts)
+    ])
+    u_eval = jnp.array([
+        jnp.array(u_eval[key][eval_idxs[key]]) if key in u_eval.keys() else jnp.zeros((max_eval_points,))
+        for key in range(num_charts)
+    ])
+
     
     print("Waiting for JIT...")
 
@@ -187,7 +197,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
             wandb.log({"loss": loss}, step)
         
         if step % config.logging.eval_every_steps == 0:
-            losses, eval_loss = model.eval(model.state, batch, eval_x, eval_y, u_eval)
+            losses, eval_loss = model.eval(model.state, batch, eval_x, eval_y, u_eval, bcs_charts)
             wandb.log({
                 "eval_loss": eval_loss, 
                 "bcs_loss": losses["bcs"],

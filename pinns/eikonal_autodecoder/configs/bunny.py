@@ -16,7 +16,7 @@ def get_config():
     config.plot = False
 
     config.mode = "train"
-    config.N = 1000
+    config.N = 50
 
     # Autoencoder checkpoint
     config.autoencoder_checkpoint = ml_collections.ConfigDict()
@@ -25,7 +25,7 @@ def get_config():
 
     # Weights & Biases
     config.wandb = wandb = ml_collections.ConfigDict()
-    wandb.project = "PINN-Debug"
+    wandb.project = "M-PINN"
     wandb.name = "default"
     wandb.tag = None
     wandb.log_every_steps = 100

@@ -126,9 +126,9 @@ class Eikonal(MPINN):
 
         return loss_dict
 
-    def compute_l2_error(self, params, x, y, u_test):
+    def compute_l2_error(self, params, x, y, u_test, bcs_charts):
         error = self.compute_bcs_loss(params, x, y, u_test)
-        error = error[self.bcs_charts]
+        error = error[bcs_charts]
         error = jnp.mean(error)
         return error
     
