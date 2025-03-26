@@ -89,7 +89,7 @@ def evaluate(config: ml_collections.ConfigDict):
 
         u_preds = []
 
-        logging.info(f"Evaluating the solution on the charts")
+        logging.info("Evaluating the solution on the charts")
         for i in tqdm(range(len(x))):
             u_preds.append(
                 model.u_pred_fn(jax.tree.map(lambda x: x[i], params), x[i], y[i])
@@ -108,7 +108,7 @@ def evaluate(config: ml_collections.ConfigDict):
             u_preds,
         )
 
-    plot_charts_solution(x, y, u_preds, name=config.figure_path + f"/eikonal.png")
+    plot_charts_solution(x, y, u_preds, name=config.figure_path + "/eikonal.png")
 
     for angles in [(30, 45), (30, 135), (30, 225), (30, 315)]:
         plot_3d_solution(
@@ -139,5 +139,5 @@ def evaluate(config: ml_collections.ConfigDict):
     mesh_sol = sol[gt_sol_pts_idxs]
 
     plot_correlation(
-        mesh_sol, gt_sol, name=config.figure_path + f"/eikonal_correlation.png"
+        mesh_sol, gt_sol, name=config.figure_path + "/eikonal_correlation.png"
     )

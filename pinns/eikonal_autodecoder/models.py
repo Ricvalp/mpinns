@@ -2,7 +2,7 @@ from functools import partial
 
 import jax
 import jax.numpy as jnp
-from jax import grad, jit, vmap
+from jax import grad, vmap
 from matplotlib import pyplot as plt
 
 from jaxpi.evaluator import BaseEvaluator

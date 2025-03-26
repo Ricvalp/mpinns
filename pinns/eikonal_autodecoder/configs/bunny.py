@@ -34,7 +34,7 @@ def get_config():
     # Arch
     config.arch = arch = ml_collections.ConfigDict()
     arch.arch_name = "Mlp"
-    arch.num_layers = 2
+    arch.num_layers = 4
     arch.hidden_dim = 256
     arch.out_dim = 1
     arch.activation = "tanh"
@@ -119,9 +119,9 @@ def get_config():
 
     # Eval
     config.eval = eval = ml_collections.ConfigDict()
-    eval.eval_with_last_ckpt = True
+    eval.eval_with_last_ckpt = False
     eval.checkpoint_dir = (
-        "pinns/eikonal_autodecoder/bunny/checkpoints/"
+        "pinns/eikonal_autodecoder/bunny/checkpoints/4layers_0.001lr_40000decaysteps_tanhactivation"
     )
     eval.step = 9999
     eval.N = 1000

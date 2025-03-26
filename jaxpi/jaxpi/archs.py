@@ -214,42 +214,89 @@ class MlpBlock(nn.Module):
         return x
 
 
-class DeepONet(nn.Module):
-    arch_name: Optional[str] = "DeepONet"
-    num_branch_layers: int = 4
-    num_trunk_layers: int = 4
-    hidden_dim: int = 256
-    out_dim: int = 1
-    activation: str = "tanh"
-    periodicity: Union[None, Dict] = None
-    fourier_emb: Union[None, Dict] = None
-    reparam: Union[None, Dict] = None
+class DeepOperatorNet(nn.Module):
+    """
+    Deep Operator Network (DeepONet) architecture.
 
-    def setup(self):
-        self.activation_fn = _get_activation(self.activation)
+    Attributes:
+        branch_layers: Number of layers in the branch net.
+        trunk_layers: Number of layers in the trunk net.
+        branch_nodes: Number of nodes in each layer of branch net.
+        trunk_nodes: Number of nodes in each layer of trunk net.
+        activation: Activation function to use.
+    """
+
+    branch_layers: int
+    trunk_layers: int
+    branch_nodes: int
+    trunk_nodes: int
+    activation: str = "relu"
 
     @nn.compact
     def __call__(self, u, x):
-        u = MlpBlock(
-            num_layers=self.num_branch_layers,
-            hidden_dim=self.hidden_dim,
-            out_dim=self.hidden_dim,
-            activation=self.activation,
-            final_activation=False,
-            reparam=self.reparam,
-        )(u)
+        """
+        Args:
+            u: Input function evaluated at a set of fixed locations.
+            x: Input locations at which the output function is evaluated.
 
-        x = Mlp(
-            num_layers=self.num_trunk_layers,
-            hidden_dim=self.hidden_dim,
-            out_dim=self.hidden_dim,
-            activation=self.activation,
-            periodicity=self.periodicity,
-            fourier_emb=self.fourier_emb,
-            reparam=self.reparam,
-        )(x)
+        Returns:
+            Approximation of the target function evaluated at x.
+        """
+        activation_fn = _get_activation(self.activation)
 
-        y = u * x
-        y = self.activation_fn(y)
-        y = Dense(features=self.out_dim, reparam=self.reparam)(y)
-        return y
+        # Branch Network
+        b = u
+        for _ in range(self.branch_layers):
+            b = Dense(features=self.branch_nodes)(b)
+            b = activation_fn(b)
+
+        # Trunk Network
+        t = x
+        for _ in range(self.trunk_layers):
+            t = Dense(features=self.trunk_nodes)(t)
+            t = activation_fn(t)
+
+        # Output Layer (Element-wise multiplication and sum)
+        output = jnp.sum(b * t, axis=-1, keepdims=True)
+        return output
+
+
+# class DeepONet(nn.Module):
+#     arch_name: Optional[str] = "DeepONet"
+#     num_branch_layers: int = 4
+#     num_trunk_layers: int = 4
+#     hidden_dim: int = 256
+#     out_dim: int = 1
+#     activation: str = "tanh"
+#     periodicity: Union[None, Dict] = None
+#     fourier_emb: Union[None, Dict] = None
+#     reparam: Union[None, Dict] = None
+
+#     def setup(self):
+#         self.activation_fn = _get_activation(self.activation)
+
+#     @nn.compact
+#     def __call__(self, u, x):
+#         u = MlpBlock(
+#             num_layers=self.num_branch_layers,
+#             hidden_dim=self.hidden_dim,
+#             out_dim=self.hidden_dim,
+#             activation=self.activation,
+#             final_activation=False,
+#             reparam=self.reparam,
+#         )(u)
+
+#         x = Mlp(
+#             num_layers=self.num_trunk_layers,
+#             hidden_dim=self.hidden_dim,
+#             out_dim=self.hidden_dim,
+#             activation=self.activation,
+#             periodicity=self.periodicity,
+#             fourier_emb=self.fourier_emb,
+#             reparam=self.reparam,
+#         )(x)
+
+#         y = u * x
+#         y = self.activation_fn(y)
+#         y = Dense(features=self.out_dim, reparam=self.reparam)(y)
+#         return y

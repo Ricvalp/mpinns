@@ -69,7 +69,7 @@
             "args": [
                 "--config=pinns/eikonal_autodecoder/configs/bunny.py",
                 "--config.autoencoder_checkpoint.step=60000",
-                "--config.eval.step=19999",
+                "--config.eval.step=199999",
                 "--config.mode=eval"
             ],
             "env": {
