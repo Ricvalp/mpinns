@@ -4,8 +4,8 @@ rm -rf slurm_logs_train
 mkdir -p slurm_logs_train
 
 NUM_LAYERS=(2 4)
-LEARNING_RATES=(0.001 0.0001 0.00001)
-DECAY_STEPS=( 10000 40000)
+LEARNING_RATES=(0.001 0.0001)
+DECAY_STEPS=(10000 40000)
 ACTIVATION_FUNCTIONS=("gelu" "tanh" "sin")
 
 job_counter=0

@@ -16,7 +16,7 @@ def get_config():
     config.plot = False
 
     config.mode = "train"
-    config.N = 50
+    config.N = 150
 
     # Autoencoder checkpoint
     config.autoencoder_checkpoint = ml_collections.ConfigDict()
@@ -121,7 +121,7 @@ def get_config():
     config.eval = eval = ml_collections.ConfigDict()
     eval.eval_with_last_ckpt = False
     eval.checkpoint_dir = (
-        "pinns/eikonal_autodecoder/bunny/checkpoints/4layers_0.001lr_40000decaysteps_tanhactivation"
+        "pinns/eikonal_autodecoder/bunny/checkpoints/4layers_0.001lr_10000decaysteps_tanhactivation"
     )
     eval.step = 9999
     eval.N = 1000
