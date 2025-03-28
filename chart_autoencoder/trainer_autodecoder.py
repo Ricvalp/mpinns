@@ -42,6 +42,7 @@ class TrainerAutoDecoder:
         self.distances_matrix = distances_matrix
         self.lambda_reg_decay = cfg.train.reg_lambda_decay
         self.noise_scale_riemannian = cfg.train.noise_scale_riemannian
+        self.lambda_geo_loss = cfg.train.lambda_geo_loss
 
         self.figure_path = Path(cfg.figure_path) / f"charts_{self.chart_key}"
         self.figure_path.mkdir(parents=True, exist_ok=True)
@@ -136,7 +137,7 @@ class TrainerAutoDecoder:
                 geo_loss = geodesic_preservation_loss(
                     self.distances_matrix, params["points"]
                 )
-                return loss + reg_lambda * (riemannian_loss + 10.0 * geo_loss), (
+                return loss + reg_lambda * (riemannian_loss + self.lambda_geo_loss * geo_loss), (
                     riemannian_loss,
                     geo_loss,
                     loss,
