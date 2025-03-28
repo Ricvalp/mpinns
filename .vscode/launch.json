@@ -62,6 +62,21 @@
             },
         },
         {
+            "name": "train propeller eikonal",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "${workspaceFolder}/pinns/eikonal_autodecoder/main.py",
+            "args": [
+                "--config=pinns/eikonal_autodecoder/configs/propeller.py",
+                "--config.autoencoder_checkpoint.step=60000",
+                "--config.mode=train"
+            ],
+            "env": {
+                "PYTHONPATH": "${workspaceFolder}",
+                "JAX_DISABLE_JIT": "False",
+            },
+        },
+        {
             "name": "eval bunny eikonal",
             "type": "debugpy",
             "request": "launch",

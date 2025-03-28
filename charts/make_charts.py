@@ -28,6 +28,7 @@ def main(_):
     Path(cfg.figure_path).mkdir(parents=True, exist_ok=True)
 
     train_data = get_dataset(cfg.dataset)
+    verts, connectivity = train_data.verts, train_data.connectivity
 
     plot_3d_points(
         points=train_data.data,
@@ -44,7 +45,13 @@ def main(_):
     )
 
     save_charts(
-        cfg.dataset.charts_path, charts, charts_idxs, boundaries, boundary_indices
+        charts_path=cfg.dataset.charts_path, 
+        charts=charts,
+        charts_idxs=charts_idxs,
+        boundaries=boundaries,
+        boundary_indices=boundary_indices,
+        verts=verts, 
+        connectivity=connectivity
     )
     logging.info(f"Got {len(charts)} charts. Saved charts to {cfg.dataset.charts_path}")
     

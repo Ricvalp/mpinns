@@ -8,6 +8,7 @@ from torch.utils import data
 import logging
 import os
 from copy import copy, deepcopy
+import igl
 
 import scipy.sparse as sp
 from scipy.sparse.linalg import spsolve

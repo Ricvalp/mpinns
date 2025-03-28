@@ -22,12 +22,12 @@ from pinns.eikonal_autodecoder.plot import (
     plot_combined_3d_with_metric,
 )
 
+import numpy as np
+
 import wandb
 from jaxpi.utils import save_checkpoint, load_config
 
 from utils import set_profiler
-
-import numpy as np
 
 
 def train_and_evaluate(config: ml_collections.ConfigDict):
@@ -59,8 +59,6 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
 
     x, y, boundaries_x, boundaries_y, bcs_x, bcs_y, bcs, charts3d = get_dataset(
         charts_path=autoencoder_config.dataset.charts_path,
-        mesh_path=config.mesh.path,
-        scale=config.mesh.scale,
         N=config.N,
     )
     
@@ -68,27 +66,27 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
 
     if config.plot:
 
-        plot_domains(
-            x,
-            y,
-            boundaries_x,
-            boundaries_y,
-            bcs_x=bcs_x,
-            bcs_y=bcs_y,
-            bcs=bcs,
-            name=Path(config.figure_path) / "domains.png",
-        )
+        # plot_domains(
+        #     x,
+        #     y,
+        #     boundaries_x,
+        #     boundaries_y,
+        #     bcs_x=bcs_x,
+        #     bcs_y=bcs_y,
+        #     bcs=bcs,
+        #     name=Path(config.figure_path) / "domains.png",
+        # )
 
-        plot_domains_3d(
-            x,
-            y,
-            bcs_x=bcs_x,
-            bcs_y=bcs_y,
-            bcs=bcs,
-            decoder=decoder,
-            d_params=d_params,
-            name=Path(config.figure_path) / "domains_3d.png",
-        )
+        # plot_domains_3d(
+        #     x,
+        #     y,
+        #     bcs_x=bcs_x,
+        #     bcs_y=bcs_y,
+        #     bcs=bcs,
+        #     decoder=decoder,
+        #     d_params=d_params,
+        #     name=Path(config.figure_path) / "domains_3d.png",
+        # )
 
         plot_domains_with_metric(
             x,
@@ -106,7 +104,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
             d_params=d_params,
             name=Path(config.figure_path) / "combined_3d_with_metric.png",
         )
-
+        
     bcs_sampler = iter(
         UniformBCSampler(
             bcs_x=bcs_x,
@@ -153,14 +151,10 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
         boundaries=(boundaries_x, boundaries_y),
         num_charts=num_charts,
     )
-
-    # evaluator = models.EikonalEvaluator(config, model)
     
     # Prepare evaluation points
     _, _, _, _, eval_x, eval_y, u_eval, _ = get_dataset(
         charts_path=autoencoder_config.dataset.charts_path,
-        mesh_path=config.mesh.path,
-        scale=config.mesh.scale,
         N=config.logging.num_eval_points,
     )
     max_eval_points = max([len(eval_x[key]) for key in eval_x.keys()])
@@ -196,7 +190,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
         if step % config.wandb.log_every_steps == 0:
             wandb.log({"loss": loss}, step)
         
-        if step % config.logging.eval_every_steps == 0:
+        if step % config.wandb.eval_every_steps == 0:
             losses, eval_loss = model.eval(model.state, batch, eval_x, eval_y, u_eval, bcs_charts)
             wandb.log({
                 "eval_loss": eval_loss, 

@@ -24,6 +24,7 @@ def get_config():
     cfg.wandb.project = "chart-autodecoder"
     cfg.wandb.name = "propeller"
     cfg.wandb.entity = "ricvalp"
+    cfg.wandb.log_every_steps = 100
     cfg.wandb.log_charts_every = 30000
 
     # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #

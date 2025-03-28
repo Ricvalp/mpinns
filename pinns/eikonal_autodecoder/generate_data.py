@@ -23,8 +23,6 @@ def generate_data(config: ml_collections.ConfigDict):
 
     x, y, boundaries_x, boundaries_y, bcs_x, bcs_y, bcs, charts3d = get_dataset(
         charts_path=autoencoder_config.dataset.charts_path,
-        mesh_path=config.mesh.path,
-        scale=config.mesh.scale,
         N=config.N,
     )
 

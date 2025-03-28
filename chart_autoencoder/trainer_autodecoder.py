@@ -30,6 +30,7 @@ class TrainerAutoDecoder:
         self.reg_lambda = cfg.train.reg_lambda
         self.reg = cfg.train.reg
         self.wandb_log = cfg.wandb.use
+        self.wandb_log_every = cfg.wandb.log_every_steps
         self.save_every = cfg.checkpoint.save_every
         self.log_charts_every = cfg.wandb.log_charts_every
         self.rng = jax.random.PRNGKey(cfg.seed)
@@ -267,12 +268,12 @@ class TrainerAutoDecoder:
                     boundaries_y=boundaries_y,
                     name=self.figure_path / f"{step}.png",
                 )
-            if self.wandb_log:
+            if self.wandb_log and step % self.wandb_log_every == 0:
                 wandb.log(
                     {
-                        f"loss": loss,
-                        f"points grads norm": jnp.linalg.norm(grads["points"]),
-                        f"decoder grads norm": jnp.linalg.norm(
+                        "loss": loss,
+                        "points grads norm": jnp.linalg.norm(grads["points"]),
+                        "decoder grads norm": jnp.linalg.norm(
                             jnp.concatenate(
                                 [
                                     jnp.ravel(p)
@@ -280,12 +281,12 @@ class TrainerAutoDecoder:
                                 ]
                             )
                         ),
-                        f"riemannian_loss": aux[0],
-                        f"geodesic_loss": aux[1],
-                        f"recon loss": aux[2],
-                        f"reg_lambda": reg_lambda,
-                        f"chart_key": self.chart_key,
-                    }
+                        "riemannian_loss": aux[0],
+                        "geodesic_loss": aux[1],
+                        "recon loss": aux[2],
+                        "reg_lambda": reg_lambda,
+                        "chart_key": self.chart_key,
+                    }, step=step
                 )
             if (step + 1) % self.save_every == 0:
                 self.save_model(step=step - 1)

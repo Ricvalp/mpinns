@@ -7,7 +7,7 @@ from datasets.utils import Mesh
 from chart_autoencoder.get_charts import load_charts
 
 
-def get_dataset(charts_path, mesh_path, scale, N=100):
+def get_dataset(charts_path, N=100):
 
     (
         loaded_charts3d,
@@ -43,16 +43,16 @@ def get_dataset(charts_path, mesh_path, scale, N=100):
         boundaries_y[starting_chart][ending_chart] = starting_chart_points[:, 1]
 
     bcs_x, bcs_y, bcs = get_eikonal_bcs(
-        mesh_path=mesh_path, scale=scale, x=x, y=y, charts3d=loaded_charts3d, N=N
+        charts_path=charts_path, x=x, y=y, charts3d=loaded_charts3d, N=N
     )
 
     return x, y, boundaries_x, boundaries_y, bcs_x, bcs_y, bcs, loaded_charts3d
 
 
-def get_eikonal_bcs(mesh_path, scale, x, y, charts3d, N=50, seed=37):
-
-    m = Mesh(mesh_path)
-    verts, connectivity = m.verts * scale, m.connectivity
+def get_eikonal_bcs(charts_path, x, y, charts3d, N=50, seed=37, center=False):
+    
+    verts = np.load(charts_path + "/verts.pkl", allow_pickle=True)
+    connectivity = np.load(charts_path + "/connectivity.pkl", allow_pickle=True)
 
     Y_eg = igl.exact_geodesic(
         verts, connectivity, np.array([0]), np.arange(verts.shape[0])

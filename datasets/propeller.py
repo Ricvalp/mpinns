@@ -29,11 +29,12 @@ class Propeller(data.Dataset):
                 self.data = self.data[indices]
 
         if center:
-            data_mean = np.mean(self.data, axis=0)
-            self.data -= data_mean
-            self.verts -= data_mean
+            self.data_mean = np.mean(self.data, axis=0)
+            self.data -= self.data_mean
+            self.verts -= self.data_mean
             
         self.data = np.concatenate([self.data, self.verts], axis=0)
+        
 
     def __len__(self):
         return len(self.data)
