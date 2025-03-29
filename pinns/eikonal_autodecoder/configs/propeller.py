@@ -113,19 +113,19 @@ def get_config():
         "pinns/eikonal_autodecoder/propeller/checkpoints/"
         + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     )
-    saving.save_every_steps = 10000
+    saving.save_every_steps = 30000
     saving.num_keep_ckpts = 10
 
     # Eval
     config.eval = eval = ml_collections.ConfigDict()
     eval.eval_with_last_ckpt = False
     eval.checkpoint_dir = (
-        "pinns/eikonal_autodecoder/propeller/checkpoints/"
+        "pinns/eikonal_autodecoder/propeller/checkpoints/best/6jvovynq"
     )
-    eval.step = 9999
+    eval.step = 179999
     eval.N = 1000
     eval.use_existing_solution = False
-    eval.solution_path = "pinns/eikonal_autodecoder/propeller/eval"
+    eval.solution_path = "pinns/eikonal_autodecoder/propeller/eval/"
 
     # Input shape for initializing Flax models
     config.input_dim = 2

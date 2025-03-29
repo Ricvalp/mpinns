@@ -33,7 +33,7 @@ from utils import set_profiler
 def train_and_evaluate(config: ml_collections.ConfigDict):
 
     wandb_config = config.wandb
-    wandb.init(
+    run = wandb.init(
         project=wandb_config.project,
         name=wandb_config.name,
         entity=wandb_config.entity,
@@ -213,7 +213,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
             ) == config.training.max_steps:
                 save_checkpoint(
                     model.state,
-                    config.saving.checkpoint_dir,
+                    f"pinns/eikonal_autodecoder/propeller/checkpoints/{run.id}", # config.saving.checkpoint_dir,
                     keep=config.saving.num_keep_ckpts,
                 )
 

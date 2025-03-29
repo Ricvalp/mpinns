@@ -49,8 +49,6 @@ def evaluate(config: ml_collections.ConfigDict):
 
     x, y, boundaries_x, boundaries_y, bcs_x, bcs_y, bcs, charts3d = get_dataset(
         charts_path=charts_config.dataset.charts_path,
-        mesh_path=config.mesh.path,
-        scale=config.mesh.scale,
         N=config.eval.N,
     )
 
