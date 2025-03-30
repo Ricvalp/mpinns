@@ -96,10 +96,10 @@ def get_eikonal_bcs(charts_path, x, y, charts3d, N=50, seed=37, center=False):
     return bcs_x, bcs_y, bcs
 
 
-def get_eikonal_gt_solution(mesh_path, scale):
+def get_eikonal_gt_solution(charts_path):
 
-    m = Mesh(mesh_path)
-    verts, connectivity = m.verts * scale, m.connectivity
+    verts = np.load(charts_path + "/verts.pkl", allow_pickle=True)
+    connectivity = np.load(charts_path + "/connectivity.pkl", allow_pickle=True)
 
     Y_eg = igl.exact_geodesic(
         verts, connectivity, np.array([0]), np.arange(verts.shape[0])

@@ -9,6 +9,9 @@ from samplers import (
     UniformBoundarySampler,
 )
 
+import json
+import logging
+
 import jax.numpy as jnp
 
 from chart_autoencoder.riemann import get_metric_tensor_and_sqrt_det_g_autodecoder
@@ -35,7 +38,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
     wandb_config = config.wandb
     run = wandb.init(
         project=wandb_config.project,
-        name=wandb_config.name,
+        # name=wandb_config.name,
         entity=wandb_config.entity,
         config=config,
     )
@@ -46,6 +49,12 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
     autoencoder_config = load_config(
         Path(config.autoencoder_checkpoint.checkpoint_path) / "cfg.json",
     )
+    
+    
+    checkpoint_dir = f"pinns/eikonal_autodecoder/propeller/checkpoints/{run.id}"
+    Path(checkpoint_dir).mkdir(parents=True, exist_ok=True)
+    with open(checkpoint_dir + "/cfg.json", "w") as f:
+        json.dump(config.to_dict(), f, indent=4)
 
     (
         inv_metric_tensor,
@@ -152,7 +161,6 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
         num_charts=num_charts,
     )
     
-    # Prepare evaluation points
     _, _, _, _, eval_x, eval_y, u_eval, _ = get_dataset(
         charts_path=autoencoder_config.dataset.charts_path,
         N=config.logging.num_eval_points,
@@ -178,7 +186,7 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
     ])
 
     
-    print("Waiting for JIT...")
+    logging.info("Jitting...")
 
     for step in tqdm(range(1, config.training.max_steps + 1), desc="Training"):
 
@@ -206,14 +214,13 @@ def train_and_evaluate(config: ml_collections.ConfigDict):
             if step % config.weighting.update_every_steps == 0:
                 model.state = model.update_weights(model.state, batch)
                 
-        # Saving
         if config.saving.save_every_steps is not None:
             if (step + 1) % config.saving.save_every_steps == 0 or (
                 step + 1
             ) == config.training.max_steps:
                 save_checkpoint(
                     model.state,
-                    f"pinns/eikonal_autodecoder/propeller/checkpoints/{run.id}", # config.saving.checkpoint_dir,
+                    checkpoint_dir,
                     keep=config.saving.num_keep_ckpts,
                 )
 

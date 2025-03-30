@@ -251,7 +251,7 @@ def plot_3d_level_curves(pts, sol, tol, angles=(30, 45), name=None):
     plt.show()
 
 
-def plot_3d_solution(pts, sol, angles, name=None):
+def plot_3d_solution(pts, sol, angles, name=None, **kwargs):
     fig = plt.figure(figsize=(18, 5))
     ax = fig.add_subplot(1, 1, 1, projection="3d")
 
@@ -261,7 +261,7 @@ def plot_3d_solution(pts, sol, angles, name=None):
         pts[:, 2],
         c=sol,
         cmap="jet",
-        s=2.5,
+        **kwargs,
     )
 
     ax.view_init(angles[0], angles[1])

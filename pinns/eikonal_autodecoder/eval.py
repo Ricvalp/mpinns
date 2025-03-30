@@ -36,6 +36,11 @@ def evaluate(config: ml_collections.ConfigDict):
     charts_config = load_config(
         Path(config.autoencoder_checkpoint.checkpoint_path) / "cfg.json",
     )
+    model_config = load_config(
+        Path(config.eval.checkpoint_dir) / "cfg.json",
+    )
+    
+    eval_config = config.eval
 
     (
         inv_metric_tensor,
@@ -49,11 +54,13 @@ def evaluate(config: ml_collections.ConfigDict):
 
     x, y, boundaries_x, boundaries_y, bcs_x, bcs_y, bcs, charts3d = get_dataset(
         charts_path=charts_config.dataset.charts_path,
-        N=config.eval.N,
+        N=eval_config.N,
     )
+    
+
 
     model = models.Eikonal(
-        config,
+        model_config,
         inv_metric_tensor=inv_metric_tensor,
         sqrt_det_g=sqrt_det_g,
         d_params=d_params,
@@ -62,30 +69,34 @@ def evaluate(config: ml_collections.ConfigDict):
         num_charts=len(x),
     )
 
-    if config.eval.eval_with_last_ckpt:
-        last_ckpt_dir = get_last_checkpoint_dir(config.eval.checkpoint_dir)
-        ckpt_path = (Path(config.eval.checkpoint_dir) / Path(last_ckpt_dir)).resolve()
+    if eval_config.eval_with_last_ckpt:
+        last_ckpt_dir = get_last_checkpoint_dir(eval_config.checkpoint_dir)
+        ckpt_path = (Path(eval_config.checkpoint_dir) / Path(last_ckpt_dir)).resolve()
     else:
-        ckpt_path = Path(config.eval.checkpoint_dir).resolve()
+        ckpt_path = Path(eval_config.checkpoint_dir).resolve()
 
     charts, charts_idxs, boundaries, boundary_indices, charts2d = load_charts(
         charts_path=charts_config.dataset.charts_path,
         from_autodecoder=True,
     )
 
-    eval_name = config.eval.checkpoint_dir.split("/")[-1]
+    eval_name = eval_config.checkpoint_dir.split("/")[-1]
 
-    if config.eval.use_existing_solution:
+    if eval_config.use_existing_solution:
         pts, sol, u_preds = load_solution(
-            config.eval.solution_path + f"/eikonal_solution_{eval_name}.npy"
+            eval_config.solution_path + f"/eikonal_solution_{eval_name}.npy"
         )
 
     else:
 
-        model.state = restore_checkpoint(model.state, ckpt_path, step=config.eval.step)
+        model.state = restore_checkpoint(model.state, ckpt_path, step=eval_config.step)
         params = model.state.params
 
         u_preds = []
+        
+        u_pred_fn = jax.jit(
+            model.u_pred_fn
+            )
 
         logging.info("Evaluating the solution on the charts")
         for i in tqdm(range(len(x))):
@@ -93,6 +104,7 @@ def evaluate(config: ml_collections.ConfigDict):
                 model.u_pred_fn(jax.tree.map(lambda x: x[i], params), x[i], y[i])
             )
         
+        logging.info("Joining solutions")
         pts, sol = get_final_solution(
             charts=charts,
             charts_idxs=charts_idxs,
@@ -100,7 +112,7 @@ def evaluate(config: ml_collections.ConfigDict):
         )
 
         save_solution(
-            config.eval.solution_path + f"/eikonal_solution_{eval_name}.npy",
+            eval_config.solution_path + f"/eikonal_solution_{eval_name}.npy",
             pts,
             sol,
             u_preds,
@@ -108,21 +120,21 @@ def evaluate(config: ml_collections.ConfigDict):
 
     plot_charts_solution(x, y, u_preds, name=config.figure_path + "/eikonal.png")
 
-    for angles in [(30, 45), (30, 135), (30, 225), (30, 315)]:
+    for angles in [(30, 45)]: #, (30, 135), (30, 225), (30, 315)]:
         plot_3d_solution(
-            pts, sol, angles, config.figure_path + f"/eikonal_3d_{angles[1]}.png"
+            pts, sol, angles, config.figure_path + f"/eikonal_3d_{angles[1]}.png", s=2.5,
         )
 
-    for tol in [1e-2, 5e-2, 1e-1, 5e-1]:
-        plot_3d_level_curves(
-            pts,
-            sol,
-            tol,
-            name=config.figure_path + f"/eikonal_3d_level_curves_{tol}.png",
-        )
+    # for tol in [1e-2, 5e-2, 1e-1, 5e-1]:
+    #     plot_3d_level_curves(
+    #         pts,
+    #         sol,
+    #         tol,
+    #         name=config.figure_path + f"/eikonal_3d_level_curves_{tol}.png",
+    #     )
 
     mesh_pts, gt_sol = get_eikonal_gt_solution(
-        mesh_path=config.mesh.path, scale=config.mesh.scale
+        charts_path=charts_config.dataset.charts_path,
     )
 
     gt_sol_pts_idxs = find_intersection_indices(
@@ -130,12 +142,20 @@ def evaluate(config: ml_collections.ConfigDict):
         pts,
     )
 
+    for angles in [(30, 45)]: #, (30, 135), (30, 225), (30, 315)]:
+        plot_3d_solution(
+            mesh_pts, gt_sol, angles, config.figure_path + f"/gt_eikonal_3d_{angles[1]}.png", s=15,
+        )
+
     assert len(gt_sol_pts_idxs) == len(
         mesh_pts
     ), "The number of points in the mesh and the number of intersection points don't match. Probably due to numerical errors."
 
     mesh_sol = sol[gt_sol_pts_idxs]
 
+    MSE = jnp.mean(((mesh_sol - gt_sol)/mesh_sol.mean()) ** 2)
+    print(f"MSE: {MSE}")
+    print(f"Correlation: {jnp.corrcoef(mesh_sol, gt_sol)[0, 1]}")
     plot_correlation(
         mesh_sol, gt_sol, name=config.figure_path + "/eikonal_correlation.png"
     )

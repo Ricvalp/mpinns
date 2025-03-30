@@ -15,7 +15,7 @@ def get_config():
     config.plot = False
 
     config.mode = "train"
-    config.N = 150
+    config.N = 25
 
     # Autoencoder checkpoint
     config.autoencoder_checkpoint = ml_collections.ConfigDict()
@@ -34,8 +34,8 @@ def get_config():
     # Arch
     config.arch = arch = ml_collections.ConfigDict()
     arch.arch_name = "Mlp"
-    arch.num_layers = 4
-    arch.hidden_dim = 256
+    arch.num_layers = 1
+    arch.hidden_dim = 32
     arch.out_dim = 1
     arch.activation = "tanh"
 
@@ -60,13 +60,13 @@ def get_config():
     optim.decay_rate = 0.9
 
     # cosine decay
-    optim.warmup_steps = 500
+    optim.warmup_steps = 1000
     optim.decay_steps = 10000
 
     # Training
     config.training = training = ml_collections.ConfigDict()
     training.max_steps = 500000
-    training.batch_size = 1024
+    training.batch_size = 128 # 1024
     training.lbfgs_max_steps = 0
 
     training.load_existing_batches = True
@@ -87,7 +87,7 @@ def get_config():
         {"bcs": 1.0, "res": 1.0, "bc": 1.0}
     )
     weighting.momentum = 0.9
-    weighting.update_every_steps = 1000
+    weighting.update_every_steps = 200
 
     # Logging
     config.logging = logging = ml_collections.ConfigDict()
@@ -114,7 +114,7 @@ def get_config():
         + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     )
     saving.save_every_steps = 30000
-    saving.num_keep_ckpts = 10
+    saving.num_keep_ckpts = 2
 
     # Eval
     config.eval = eval = ml_collections.ConfigDict()
@@ -123,7 +123,7 @@ def get_config():
         "pinns/eikonal_autodecoder/propeller/checkpoints/best/6jvovynq"
     )
     eval.step = 179999
-    eval.N = 1000
+    eval.N = 2000
     eval.use_existing_solution = False
     eval.solution_path = "pinns/eikonal_autodecoder/propeller/eval/"
 
