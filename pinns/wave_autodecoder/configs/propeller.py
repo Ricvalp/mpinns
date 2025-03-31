@@ -1,6 +1,4 @@
 from datetime import datetime
-
-import jax.numpy as jnp
 import ml_collections
 
 
@@ -14,11 +12,12 @@ def get_config():
 
     config.mode = "train"
     config.T = 4.0
+    config.c2 = 0.4
 
     # Autoencoder checkpoint
     config.autoencoder_checkpoint = ml_collections.ConfigDict()
-    config.autoencoder_checkpoint.checkpoint_path = "./fit/checkpoints/sphere"
-    config.autoencoder_checkpoint.step = 50000
+    config.autoencoder_checkpoint.checkpoint_path = "./fit/checkpoints/propeller"
+    config.autoencoder_checkpoint.step = 10000000
 
     # Weights & Biases
     config.wandb = wandb = ml_collections.ConfigDict()
@@ -52,18 +51,35 @@ def get_config():
     optim.eps = 1e-8
     optim.learning_rate = 1e-5
     optim.decay_rate = 0.9
-    optim.decay_steps = 2000
+
+    # cosine decay
+    optim.warmup_steps = 1000
+    optim.decay_steps = 10000
+
 
     # Training
     config.training = training = ml_collections.ConfigDict()
     training.max_steps = 200000
     training.batch_size = 1024
 
+
+    training.load_existing_batches = True
+    training.res_batches_path = "pinns/wave_autodecoder/propeller/data/res_batches.npy"
+    training.boundary_batches_path = (
+        "pinns/wave_autodecoder/propeller/data/boundary_batches.npy"
+    )
+    training.boundary_pairs_idxs_path = (
+        "pinns/wave_autodecoder/propeller/data/boundary_pairs_idxs.npy"
+    )
+    training.bcs_batches_path = "pinns/wave_autodecoder/propeller/data/bcs_batches.npy"
+    training.bcs_values_path = "pinns/wave_autodecoder/propeller/data/bcs_values.npy"
+
+
     # Weighting
     config.weighting = weighting = ml_collections.ConfigDict()
     weighting.scheme = "grad_norm"
     weighting.init_weights = ml_collections.ConfigDict(
-        {"ics": 1.0, "res": 1.0, "bc": 1.0}
+        {"ics": 1.0, "res": 1.0, "bc": 1.0, "ics_derivative": 1.0}
     )
     weighting.momentum = 0.9
     weighting.update_every_steps = 1000
@@ -81,12 +97,12 @@ def get_config():
     config.profiler = profiler = ml_collections.ConfigDict()
     profiler.start_step = 200
     profiler.end_step = 210
-    profiler.log_dir = "pinns/diffusion_single_gpu/sphere/profiler"
+    profiler.log_dir = "pinns/wave_autodecoder/propeller/profiler"
 
     # Saving
     config.saving = saving = ml_collections.ConfigDict()
     saving.checkpoint_dir = (
-        "pinns/diffusion_single_gpu/sphere/checkpoints/"
+        "pinns/wave_autodecoder/propeller/checkpoints/"
         + datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
     )
     saving.save_every_steps = 5000
@@ -95,7 +111,7 @@ def get_config():
     # Eval
     config.eval = eval = ml_collections.ConfigDict()
     eval.eval_with_last_ckpt = True
-    eval.checkpoint_dir = "pinns/diffusion_single_gpu/sphere/checkpoints/"
+    eval.checkpoint_dir = "pinns/wave_autodecoder/propeller/checkpoints/"
     eval.step = 11000
 
     # Input shape for initializing Flax models

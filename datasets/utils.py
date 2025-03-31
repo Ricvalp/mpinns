@@ -412,8 +412,10 @@ def get_dataset(cfg_dataset: Dict[str, Any]) -> data.Dataset:
     if cfg_dataset.name == "Sphere":
         logging.info(f"Dataset: {cfg_dataset.name}")
         dataset = getattr(datasets, cfg_dataset.name)(
-            R=cfg_dataset.R,
-            N=cfg_dataset.N,
+            scale=cfg_dataset.scale,
+            path=cfg_dataset.path,
+            points_per_unit_area=cfg_dataset.points_per_unit_area,
+            subset_cardinality=cfg_dataset.subset_cardinality,
             seed=cfg_dataset.seed,
         )
 
